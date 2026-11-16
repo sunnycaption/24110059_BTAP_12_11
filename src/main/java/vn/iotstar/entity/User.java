@@ -2,7 +2,9 @@ package vn.iotstar.entity;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Entity User ánh xạ tới bảng Users trong database JavaWebMVC.
@@ -35,9 +37,22 @@ public class User implements Serializable {
     @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
 
+    @Column(name = "status")
+    private boolean status = false; // 0 = Chưa kích hoạt, 1 = Đã kích hoạt
+
+    @Column(name = "code", length = 10)
+    private String code; // Mã OTP 6 số
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "otpExpiry")
+    private Date otpExpiry; // Thời gian hết hạn OTP
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "createdAt", insertable = false, updatable = false)
     private Date createdAt;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Video> videos = new ArrayList<>();
 
     // Default constructor
     public User() {
@@ -49,16 +64,32 @@ public class User implements Serializable {
         this.password = password;
         this.fullname = fullname;
         this.email = email;
+        this.status = false;
+        this.createdAt = new Date();
+    }
+
+    // Constructor có status và OTP
+    public User(String username, String password, String fullname, String email, boolean status, String code, Date otpExpiry) {
+        this.username = username;
+        this.password = password;
+        this.fullname = fullname;
+        this.email = email;
+        this.status = status;
+        this.code = code;
+        this.otpExpiry = otpExpiry;
         this.createdAt = new Date();
     }
 
     // Full constructor
-    public User(int id, String username, String password, String fullname, String email, Date createdAt) {
+    public User(int id, String username, String password, String fullname, String email, boolean status, String code, Date otpExpiry, Date createdAt) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.fullname = fullname;
         this.email = email;
+        this.status = status;
+        this.code = code;
+        this.otpExpiry = otpExpiry;
         this.createdAt = createdAt;
     }
 
@@ -103,12 +134,44 @@ public class User implements Serializable {
         this.email = email;
     }
 
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public Date getOtpExpiry() {
+        return otpExpiry;
+    }
+
+    public void setOtpExpiry(Date otpExpiry) {
+        this.otpExpiry = otpExpiry;
+    }
+
     public Date getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public List<Video> getVideos() {
+        return videos;
+    }
+
+    public void setVideos(List<Video> videos) {
+        this.videos = videos;
     }
 
     @Override
@@ -118,6 +181,9 @@ public class User implements Serializable {
                 ", username='" + username + '\'' +
                 ", fullname='" + fullname + '\'' +
                 ", email='" + email + '\'' +
+                ", status=" + status +
+                ", code='" + code + '\'' +
+                ", otpExpiry=" + otpExpiry +
                 ", createdAt=" + createdAt +
                 '}';
     }

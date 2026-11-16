@@ -5,6 +5,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import vn.iotstar.service.UserService;
 import vn.iotstar.service.impl.UserServiceImpl;
 
@@ -12,7 +13,7 @@ import java.io.IOException;
 
 /**
  * Servlet Controller xử lý chức năng Đăng ký tài khoản (MVC - Controller).
- * Tương thích Jakarta EE 10 / Tomcat 10.1.
+ * Tích hợp cơ chế gửi OTP kích hoạt qua Email.
  */
 @WebServlet(urlPatterns = {"/register"})
 public class RegisterServlet extends HttpServlet {
@@ -91,15 +92,19 @@ public class RegisterServlet extends HttpServlet {
             return;
         }
 
-        // 6. Thực hiện đăng ký tài khoản (Service sẽ mã hóa BCrypt và gọi DAO persist)
+        // 6. Thực hiện đăng ký tài khoản (Tạo tài khoản chưa kích hoạt, gửi OTP qua Email)
         boolean isSuccess = userService.register(username, password, fullname, email);
 
         if (isSuccess) {
-            // Đăng ký thành công -> chuyển về trang đăng nhập với thông báo thành công
-            req.setAttribute("successMessage", "Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay bây giờ.");
-            req.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(req, resp);
+            // Lưu email vào session để tiện trang verify-otp sử dụng
+            HttpSession session = req.getSession();
+            session.setAttribute("verifyEmail", email);
+            session.setAttribute("infoMessage", "Mã xác thực OTP đã được gửi về email " + email + ". Vui lòng nhập mã để kích hoạt tài khoản!");
+
+            // Chuyển hướng sang trang nhập OTP xác thực
+            resp.sendRedirect(req.getContextPath() + "/verify-otp");
         } else {
-            req.setAttribute("errorMessage", "Đăng ký thất bại do lỗi hệ thống! Vui lòng thử lại sau.");
+            req.setAttribute("errorMessage", "Đăng ký không thành công do lỗi hệ thống. Vui lòng thử lại!");
             req.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(req, resp);
         }
     }

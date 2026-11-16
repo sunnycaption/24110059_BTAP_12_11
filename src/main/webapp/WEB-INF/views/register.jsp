@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -11,15 +12,15 @@
     <div class="auth-container">
         <div class="header-title">
             <h2>Đăng Ký Tài Khoản</h2>
-            <p>Hệ thống xác thực người dùng MVC 3 tầng (JPA + Hibernate)</p>
+            <p>Hệ thống xác thực & gửi mã OTP kích hoạt qua Email (24110059)</p>
         </div>
 
         <%-- Hiển thị thông báo lỗi --%>
-        <% if (request.getAttribute("errorMessage") != null) { %>
+        <c:if test="${not empty errorMessage}">
             <div class="alert alert-danger">
-                <%= request.getAttribute("errorMessage") %>
+                ${errorMessage}
             </div>
-        <% } %>
+        </c:if>
 
         <form action="${pageContext.request.contextPath}/register" method="post">
             <div class="form-group">
@@ -37,10 +38,10 @@
             </div>
 
             <div class="form-group">
-                <label for="email">Địa chỉ Email:</label>
+                <label for="email">Địa chỉ Email (Nhận mã kích hoạt OTP):</label>
                 <input type="email" id="email" name="email" class="form-control" 
                        value="${email != null ? email : ''}" 
-                       placeholder="Ví dụ: nguyenvana@example.com" required>
+                       placeholder="Ví dụ: your_email@gmail.com" required>
             </div>
 
             <div class="form-group">
@@ -55,7 +56,11 @@
                        placeholder="Nhập lại mật khẩu" required>
             </div>
 
-            <button type="submit" class="btn btn-primary">Đăng Ký</button>
+            <div style="font-size: 13px; color: #718096; margin-bottom: 15px;">
+                💡 <em>Sau khi bấm Đăng Ký, mã OTP gồm 6 chữ số sẽ được gửi về email của bạn để kích hoạt tài khoản.</em>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Đăng Ký Tài Khoản</button>
         </form>
 
         <div class="auth-footer">

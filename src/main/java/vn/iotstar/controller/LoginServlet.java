@@ -14,7 +14,7 @@ import java.io.IOException;
 
 /**
  * Servlet Controller xử lý chức năng Đăng nhập người dùng (MVC - Controller).
- * Tương thích Jakarta EE 10 / Tomcat 10.1.
+ * Hỗ trợ xác thực mật khẩu hash BCrypt và kiểm tra trạng thái kích hoạt OTP.
  */
 @WebServlet(urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
@@ -35,6 +35,16 @@ public class LoginServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/home");
             return;
         }
+
+        // Đọc thông báo thành công từ session nếu có (ví dụ sau khi kích hoạt OTP hoặc đổi pass)
+        if (session != null) {
+            String successMessage = (String) session.getAttribute("successMessage");
+            if (successMessage != null) {
+                req.setAttribute("successMessage", successMessage);
+                session.removeAttribute("successMessage");
+            }
+        }
+
         // Chuyển hướng tới giao diện login.jsp
         req.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(req, resp);
     }
@@ -55,10 +65,22 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        // 2. Gọi tầng Service xử lý kiểm tra đăng nhập qua JPA & BCrypt
+        // 2. Gọi tầng Service kiểm tra đăng nhập qua BCrypt
         User user = userService.login(username.trim(), password.trim());
 
         if (user != null) {
+            // 3. Kiểm tra trạng thái kích hoạt tài khoản
+            if (!user.isStatus()) {
+                HttpSession session = req.getSession();
+                session.setAttribute("verifyEmail", user.getEmail());
+                req.setAttribute("notActivated", true);
+                req.setAttribute("userEmail", user.getEmail());
+                req.setAttribute("errorMessage", "Tài khoản của bạn chưa được kích hoạt bằng OTP!");
+                req.setAttribute("username", username);
+                req.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(req, resp);
+                return;
+            }
+
             // Đăng nhập thành công -> lưu thông tin vào HttpSession
             HttpSession session = req.getSession();
             session.setAttribute("currentUser", user);
@@ -66,7 +88,7 @@ public class LoginServlet extends HttpServlet {
             // Chuyển hướng sang trang chủ
             resp.sendRedirect(req.getContextPath() + "/home");
         } else {
-            // Đăng nhập thất bại -> hiển thị thông báo lỗi
+            // Đăng nhập thất bại
             req.setAttribute("errorMessage", "Tên đăng nhập hoặc mật khẩu không chính xác!");
             req.setAttribute("username", username);
             req.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(req, resp);

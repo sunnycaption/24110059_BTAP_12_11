@@ -8,8 +8,9 @@
     <persistence-unit name="JavaWebMVC" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-        <!-- Đăng ký Entity User -->
+        <!-- Đăng ký Entity User và Video -->
         <class>vn.iotstar.entity.User</class>
+        <class>vn.iotstar.entity.Video</class>
 
         <properties>
             <!-- Cấu hình kết nối JDBC SQL Server -->
