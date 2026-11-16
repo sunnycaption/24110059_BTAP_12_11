@@ -1,6 +1,6 @@
 # Dự Án Java Web MVC JPA - Xác Thực OTP & Quản Lý Video
 
-**Họ và tên:** Sinh viên HCMUTE  
+**Họ và tên: Lê Thị Thanh Thúy
 **Mã số SV:** 24110059  
 **Repository GitHub:** https://github.com/sunnycaption/24110059_BTAP_12_11  
 
