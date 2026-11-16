@@ -14,7 +14,9 @@ import vn.iotstar.service.VideoService;
 import vn.iotstar.service.impl.VideoServiceImpl;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -288,10 +290,12 @@ public class VideoServlet extends HttpServlet {
     }
 
     /**
-     * Lưu trữ file vật lý vào thư mục uploads/ trong webapp và trả về đường dẫn tương đối uploads/<tên_file>.
+     * Bổ sung phương thức lưu trữ file an toàn sử dụng Jakarta Servlet Multipart (Part).
+     * Tự động tạo thư mục /uploads nếu chưa có, đổi tên file duy nhất tránh trùng lặp
+     * và trả về đường dẫn tương đối dạng: uploads/<uniqueFileName>.
      */
     private String saveUploadedFile(Part part, HttpServletRequest req, String prefix) throws IOException {
-        if (part == null || part.getSize() == 0) {
+        if (part == null || part.getSize() <= 0) {
             return null;
         }
 
@@ -300,25 +304,48 @@ public class VideoServlet extends HttpServlet {
             return null;
         }
 
+        // Trích xuất tên file an toàn bằng Paths.get
         String originalName = Paths.get(submittedFileName).getFileName().toString();
+        if (originalName.trim().isEmpty()) {
+            return null;
+        }
+
+        // Lấy phần mở rộng file (extension)
         String ext = "";
         int dotIndex = originalName.lastIndexOf(".");
         if (dotIndex >= 0) {
             ext = originalName.substring(dotIndex);
         }
 
+        // Sinh tên file duy nhất kết hợp prefix và timestamp
         String uniqueFileName = prefix + "_" + System.currentTimeMillis() + ext;
 
-        // Lưu vật lý vào thư mục uploads trong ứng dụng webapp
+        // Xác định và tạo thư mục lưu trữ uploads trong webapp nếu chưa tồn tại
         String uploadDir = req.getServletContext().getRealPath("/uploads");
+        if (uploadDir == null) {
+            uploadDir = System.getProperty("catalina.base", ".") + File.separator + "webapps" 
+                    + File.separator + req.getContextPath().replace("/", "") + File.separator + "uploads";
+        }
         File dir = new File(uploadDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
 
-        part.write(uploadDir + File.separator + uniqueFileName);
+        File targetFile = new File(dir, uniqueFileName);
+        // Lưu dữ liệu file bằng stream độc lập và an toàn trên mọi container
+        try (InputStream in = part.getInputStream();
+             FileOutputStream out = new FileOutputStream(targetFile)) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        } catch (Exception e) {
+            // Fallback sang phương thức part.write của servlet spec
+            part.write(targetFile.getAbsolutePath());
+        }
 
-        // Trả về đường dẫn tương đối lưu vào DB: uploads/<tên_file>
+        // Trả về đường dẫn tương đối lưu vào Database: uploads/<tên_file>
         return "uploads/" + uniqueFileName;
     }
 }

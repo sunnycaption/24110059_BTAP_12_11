@@ -4,3 +4,9 @@
 .project
 *.war
 *.jar
+.vscode/
+.idea/
+
+# Bảo mật thông tin nhạy cảm SMTP Email (chứa mật khẩu app thật của cá nhân)
+email.properties
+

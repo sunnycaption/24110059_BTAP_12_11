@@ -75,8 +75,49 @@
 
 ---
 
-## 4. Hướng Dẫn Khởi Chạy Kiểm Thử Nhanh
+## 4. Hướng Dẫn Cấu Hình Bảo Mật & Email SMTP (`email.properties`)
+
+File cấu hình tại: `src/main/resources/email.properties`
+
+```properties
+mail.smtp.host=smtp.gmail.com
+mail.smtp.port=587
+mail.smtp.auth=true
+mail.smtp.starttls.enable=true
+mail.smtp.ssl.protocols=TLSv1.2
+
+# Thay đổi bằng tài khoản Gmail và Mật khẩu ứng dụng 16 ký tự của bạn:
+mail.username=your_email@gmail.com
+mail.password=your_16_char_app_password
+mail.from.name=Hệ thống Xác thực Java Web - 24110059
+```
+
+> **Lưu ý bảo mật**: 
+> - File `email.properties` trên GitHub đã được thay bằng placeholder mặc định và bổ sung vào `.gitignore` để tránh rò rỉ mật khẩu cá nhân lên repository công khai.
+> - **Cơ chế Fallback thông minh khi Test**: Hệ thống được tích hợp sẵn cơ chế in trực tiếp mã OTP 6 số ra cửa sổ Console / Server Logs (`System.out.println`). Do đó, giảng viên và người kiểm thử có thể test toàn bộ chu trình Đăng ký $\rightarrow$ Xác thực OTP $\rightarrow$ Đăng nhập ngay lập tức trên máy local mà không bắt buộc phải có Gmail App Password thực tế!
+
+---
+
+## 5. Cơ Chế Upload & Phục Vụ File Multipart (`saveUploadedFile`)
+
+1. **Tự động tạo thư mục lưu trữ (`/uploads`)**:
+   - Phương thức `saveUploadedFile(Part part, HttpServletRequest req, String prefix)` trong `VideoServlet.java` tự động kiểm tra sự tồn tại của thư mục `uploads/` trên server (thông qua `req.getServletContext().getRealPath("/uploads")`). Nếu thư mục chưa có, hệ thống sẽ tự động gọi `dir.mkdirs()` để khởi tạo.
+2. **Đặt tên file an toàn & chống trùng lặp**:
+   - Tên file gửi lên được chuẩn hóa thông qua `Paths.get(part.getSubmittedFileName()).getFileName().toString()`.
+   - File lưu trữ được sinh mã duy nhất theo định dạng: `<prefix>_<timestamp>.<ext>` (ví dụ: `poster_1731748291000.jpg`, `video_1731748291000.mp4`).
+3. **Stream dữ liệu nhị phân chuẩn**:
+   - Dữ liệu được ghi ra đĩa bằng `InputStream` và `FileOutputStream` với buffer 8KB, đồng thời hỗ trợ fallback sang `Part.write()`, đảm bảo tương thích 100% trên mọi servlet container (Apache Tomcat 10+).
+4. **Phục vụ file qua `FileServlet`**:
+   - Servlet mapping `/uploads/*` tự động nhận diện MIME type (`image/jpeg`, `image/png`, `video/mp4`, ...) và hỗ trợ header `Accept-Ranges: bytes` giúp trình phát HTML5 `<video controls>` có thể tua mượt mà.
+
+---
+
+## 6. Hướng Dẫn Khởi Chạy Kiểm Thử Nhanh
 
 1. Mở file [database.sql](database.sql) trong SSMS và chạy **Execute**.
 2. Nhấp đúp vào file [deploy_and_start.bat](deploy_and_start.bat) trong thư mục dự án để tự động đóng gói WAR và khởi chạy Tomcat 10.1.44.
 3. Trình duyệt sẽ tự động mở trang web tại địa chỉ: `http://localhost:8080/UserAuthProject/login`
+   - Đăng nhập thử với tài khoản mẫu: `admin` / `123456` hoặc `user01` / `123456`.
+   - Đăng ký tài khoản mới: Nhập thông tin $\rightarrow$ Lấy mã OTP (trong Gmail hoặc trên cửa sổ console Tomcat) $\rightarrow$ Kích hoạt thành công.
+   - Thử nghiệm tính năng Quản lý Video: Vào mục "Quản lý Video" (`/video`) $\rightarrow$ Thêm mới video kèm upload poster và video `.mp4`.
+   - Xem Top 10 video trang chủ tại `/home` và click vào tiêu đề để phát video với HTML5 Player.
