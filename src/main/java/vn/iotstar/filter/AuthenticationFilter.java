@@ -10,14 +10,13 @@ import java.io.IOException;
 
 /**
  * Filter xác thực người dùng (Authentication Filter).
- * Chặn truy cập trang chủ /home và các trang bảo vệ nếu người dùng chưa đăng nhập.
+ * Chặn truy cập trang chủ /home và các trang quản lý video cá nhân nếu chưa đăng nhập.
  */
-@WebFilter(urlPatterns = {"/home", "/home/*"})
+@WebFilter(urlPatterns = {"/home", "/home/*", "/video", "/video/add", "/video/edit", "/video/delete"})
 public class AuthenticationFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        // Khởi tạo filter nếu cần
     }
 
     @Override
@@ -31,10 +30,8 @@ public class AuthenticationFilter implements Filter {
         boolean isLoggedIn = (session != null && session.getAttribute("currentUser") != null);
 
         if (isLoggedIn) {
-            // Đã đăng nhập -> cho phép tiếp tục truy cập
             chain.doFilter(request, response);
         } else {
-            // Chưa đăng nhập -> chuyển hướng về trang đăng nhập kèm thông báo
             req.setAttribute("errorMessage", "Bạn cần đăng nhập để truy cập trang này!");
             req.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(req, resp);
         }
@@ -42,6 +39,5 @@ public class AuthenticationFilter implements Filter {
 
     @Override
     public void destroy() {
-        // Dọn dẹp tài nguyên khi filter kết thúc
     }
 }
