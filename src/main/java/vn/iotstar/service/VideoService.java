@@ -11,9 +11,9 @@ public interface VideoService {
 
     void update(Video video);
 
-    void delete(String videoId);
+    void delete(int videoId);
 
-    Video findById(String videoId);
+    Video findById(int videoId);
 
     List<Video> findAll();
 
@@ -30,5 +30,5 @@ public interface VideoService {
     int countByUserId(int userId);
 
     // Tăng lượt xem cho video
-    void increaseViews(String videoId);
+    void increaseViews(int videoId);
 }

@@ -20,16 +20,20 @@ import java.util.List;
 
 /**
  * Servlet Controller quản lý Video của người dùng (CRUD, Upload Multipart & Phân trang 6 sp/trang).
+ * Cấu hình chuẩn Jakarta Servlet Multipart theo đề bài:
+ * - fileSizeThreshold = 2MB
+ * - maxFileSize = 50MB
+ * - maxRequestSize = 100MB
  */
 @WebServlet(urlPatterns = {"/video", "/video/add", "/video/edit", "/video/delete"})
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024 * 2,  // 2MB
-        maxFileSize = 1024 * 1024 * 100,      // 100MB cho file video & ảnh
-        maxRequestSize = 1024 * 1024 * 120    // 120MB tổng request
+        maxFileSize = 1024 * 1024 * 50,      // 50MB cho file video & ảnh
+        maxRequestSize = 1024 * 1024 * 100   // 100MB tổng request
 )
 public class VideoServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private static final int PAGE_SIZE = 6; // Phân trang 6 sản phẩm/trang theo yêu cầu đề bài
+    private static final int PAGE_SIZE = 6; // Phân trang cố định chuẩn 6 sản phẩm/trang theo yêu cầu
     private VideoService videoService;
 
     @Override
@@ -94,7 +98,7 @@ public class VideoServlet extends HttpServlet {
     }
 
     /**
-     * Hiển thị danh sách video của user với phân trang 6 sp/trang.
+     * Hiển thị danh sách video của user với phân trang chuẩn 6 sp/trang tại URL /video.
      */
     private void showVideoList(HttpServletRequest req, HttpServletResponse resp, User currentUser)
             throws ServletException, IOException {
@@ -109,7 +113,7 @@ public class VideoServlet extends HttpServlet {
             }
         }
 
-        // Lấy danh sách video của user đang đăng nhập có phân trang
+        // Lấy danh sách video của user đang đăng nhập có phân trang (6 sp/trang)
         List<Video> videos = videoService.findByUserIdWithPaging(currentUser.getId(), page, PAGE_SIZE);
         int totalVideos = videoService.countByUserId(currentUser.getId());
         int totalPages = (int) Math.ceil((double) totalVideos / PAGE_SIZE);
@@ -136,30 +140,34 @@ public class VideoServlet extends HttpServlet {
      */
     private void showEditForm(HttpServletRequest req, HttpServletResponse resp, User currentUser)
             throws ServletException, IOException {
-        String videoId = req.getParameter("id");
-        if (videoId == null || videoId.trim().isEmpty()) {
+        String idParam = req.getParameter("id");
+        if (idParam == null || idParam.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/video");
             return;
         }
 
-        Video video = videoService.findById(videoId.trim());
-        if (video == null || video.getUser().getId() != currentUser.getId()) {
-            req.getSession().setAttribute("message", "Video không tồn tại hoặc bạn không có quyền sửa!");
-            resp.sendRedirect(req.getContextPath() + "/video");
-            return;
-        }
+        try {
+            int videoId = Integer.parseInt(idParam.trim());
+            Video video = videoService.findById(videoId);
+            if (video == null || video.getUser().getId() != currentUser.getId()) {
+                req.getSession().setAttribute("message", "Video không tồn tại hoặc bạn không có quyền sửa!");
+                resp.sendRedirect(req.getContextPath() + "/video");
+                return;
+            }
 
-        req.setAttribute("video", video);
-        req.setAttribute("mode", "edit");
-        req.getRequestDispatcher("/WEB-INF/views/video-form.jsp").forward(req, resp);
+            req.setAttribute("video", video);
+            req.setAttribute("mode", "edit");
+            req.getRequestDispatcher("/WEB-INF/views/video-form.jsp").forward(req, resp);
+        } catch (NumberFormatException e) {
+            resp.sendRedirect(req.getContextPath() + "/video");
+        }
     }
 
     /**
-     * Xử lý thêm mới video cùng Multipart Upload (Poster & Video file).
+     * Xử lý thêm mới video với Upload Multipart (posterFile & videoFile).
      */
     private void handleAddVideo(HttpServletRequest req, HttpServletResponse resp, User currentUser)
             throws ServletException, IOException {
-        String videoId = req.getParameter("videoId");
         String title = req.getParameter("title");
         String description = req.getParameter("description");
         String activeStr = req.getParameter("active");
@@ -172,35 +180,21 @@ public class VideoServlet extends HttpServlet {
             return;
         }
 
-        if (videoId == null || videoId.trim().isEmpty()) {
-            videoId = "VID" + System.currentTimeMillis();
-        } else {
-            videoId = videoId.trim();
-        }
-
-        // Kiểm tra trùng videoId
-        if (videoService.findById(videoId) != null) {
-            req.setAttribute("errorMessage", "Mã Video '" + videoId + "' đã tồn tại! Vui lòng chọn mã khác.");
-            req.setAttribute("mode", "add");
-            req.getRequestDispatcher("/WEB-INF/views/video-form.jsp").forward(req, resp);
-            return;
-        }
-
-        // 1. Upload ảnh Poster
+        // 1. Upload file Poster bằng Multipart
         Part posterPart = req.getPart("posterFile");
-        String posterName = saveUploadedFile(posterPart, req, "poster");
-        if (posterName == null) {
-            posterName = req.getParameter("posterUrl"); // Link ngoài nếu có
+        String posterPath = saveUploadedFile(posterPart, req, "poster");
+        if (posterPath == null) {
+            posterPath = req.getParameter("posterUrl"); // Fallback URL ngoài nếu có
         }
 
-        // 2. Upload file Video
+        // 2. Upload file Video bằng Multipart
         Part videoPart = req.getPart("videoFile");
-        String videoPath = saveUploadedFile(videoPart, req, "video");
-        if (videoPath == null) {
-            videoPath = req.getParameter("videoUrl"); // Link ngoài hoặc YouTube nếu có
+        String videoFilePath = saveUploadedFile(videoPart, req, "video");
+        if (videoFilePath == null) {
+            videoFilePath = req.getParameter("videoUrl"); // Fallback URL ngoài nếu có
         }
 
-        Video newVideo = new Video(videoId, title.trim(), posterName, videoPath, 0, description, active, currentUser);
+        Video newVideo = new Video(title.trim(), posterPath, videoFilePath, description, active, currentUser);
         videoService.insert(newVideo);
 
         req.getSession().setAttribute("message", "Thêm video mới thành công!");
@@ -208,59 +202,66 @@ public class VideoServlet extends HttpServlet {
     }
 
     /**
-     * Xử lý chỉnh sửa video cùng Multipart Upload.
+     * Xử lý cập nhật video: nếu người dùng không chọn file mới thì giữ nguyên poster và videoFile cũ.
      */
     private void handleEditVideo(HttpServletRequest req, HttpServletResponse resp, User currentUser)
             throws ServletException, IOException {
-        String videoId = req.getParameter("videoId");
-        String title = req.getParameter("title");
-        String description = req.getParameter("description");
-        String activeStr = req.getParameter("active");
-        boolean active = "on".equals(activeStr) || "true".equalsIgnoreCase(activeStr);
-
-        if (videoId == null || videoId.trim().isEmpty()) {
+        String idParam = req.getParameter("videoId");
+        if (idParam == null || idParam.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/video");
             return;
         }
 
-        Video existing = videoService.findById(videoId.trim());
-        if (existing == null || existing.getUser().getId() != currentUser.getId()) {
-            req.getSession().setAttribute("message", "Bạn không có quyền chỉnh sửa video này!");
+        try {
+            int videoId = Integer.parseInt(idParam.trim());
+            Video existing = videoService.findById(videoId);
+            if (existing == null || existing.getUser().getId() != currentUser.getId()) {
+                req.getSession().setAttribute("message", "Bạn không có quyền chỉnh sửa video này!");
+                resp.sendRedirect(req.getContextPath() + "/video");
+                return;
+            }
+
+            String title = req.getParameter("title");
+            String description = req.getParameter("description");
+            String activeStr = req.getParameter("active");
+            boolean active = "on".equals(activeStr) || "true".equalsIgnoreCase(activeStr);
+
+            existing.setTitle(title.trim());
+            existing.setDescription(description);
+            existing.setActive(active);
+
+            // Xử lý upload poster: nếu có file mới thì lưu file mới, nếu không thì giữ nguyên poster cũ
+            Part posterPart = req.getPart("posterFile");
+            String newPosterPath = saveUploadedFile(posterPart, req, "poster");
+            if (newPosterPath != null) {
+                existing.setPoster(newPosterPath);
+            } else {
+                String posterUrl = req.getParameter("posterUrl");
+                if (posterUrl != null && !posterUrl.trim().isEmpty()) {
+                    existing.setPoster(posterUrl.trim());
+                }
+                // Nếu cả 2 đều không nhập, giữ nguyên existing.getPoster()
+            }
+
+            // Xử lý upload video: nếu có file mới thì lưu file mới, nếu không thì giữ nguyên videoFile cũ
+            Part videoPart = req.getPart("videoFile");
+            String newVideoPath = saveUploadedFile(videoPart, req, "video");
+            if (newVideoPath != null) {
+                existing.setVideoFile(newVideoPath);
+            } else {
+                String videoUrl = req.getParameter("videoUrl");
+                if (videoUrl != null && !videoUrl.trim().isEmpty()) {
+                    existing.setVideoFile(videoUrl.trim());
+                }
+                // Nếu cả 2 đều không nhập, giữ nguyên existing.getVideoFile()
+            }
+
+            videoService.update(existing);
+            req.getSession().setAttribute("message", "Cập nhật video thành công!");
             resp.sendRedirect(req.getContextPath() + "/video");
-            return;
+        } catch (NumberFormatException e) {
+            resp.sendRedirect(req.getContextPath() + "/video");
         }
-
-        existing.setTitle(title.trim());
-        existing.setDescription(description);
-        existing.setActive(active);
-
-        // Upload ảnh mới nếu có
-        Part posterPart = req.getPart("posterFile");
-        String posterName = saveUploadedFile(posterPart, req, "poster");
-        if (posterName != null) {
-            existing.setPoster(posterName);
-        } else {
-            String posterUrl = req.getParameter("posterUrl");
-            if (posterUrl != null && !posterUrl.trim().isEmpty()) {
-                existing.setPoster(posterUrl.trim());
-            }
-        }
-
-        // Upload video mới nếu có
-        Part videoPart = req.getPart("videoFile");
-        String videoPath = saveUploadedFile(videoPart, req, "video");
-        if (videoPath != null) {
-            existing.setVideoPath(videoPath);
-        } else {
-            String videoUrl = req.getParameter("videoUrl");
-            if (videoUrl != null && !videoUrl.trim().isEmpty()) {
-                existing.setVideoPath(videoUrl.trim());
-            }
-        }
-
-        videoService.update(existing);
-        req.getSession().setAttribute("message", "Cập nhật video thành công!");
-        resp.sendRedirect(req.getContextPath() + "/video");
     }
 
     /**
@@ -268,21 +269,26 @@ public class VideoServlet extends HttpServlet {
      */
     private void handleDeleteVideo(HttpServletRequest req, HttpServletResponse resp, User currentUser)
             throws IOException {
-        String videoId = req.getParameter("id");
-        if (videoId != null && !videoId.trim().isEmpty()) {
-            Video v = videoService.findById(videoId.trim());
-            if (v != null && v.getUser().getId() == currentUser.getId()) {
-                videoService.delete(videoId.trim());
-                req.getSession().setAttribute("message", "Đã xóa video thành công!");
-            } else {
-                req.getSession().setAttribute("message", "Không tìm thấy video hoặc bạn không có quyền xóa!");
+        String idParam = req.getParameter("id");
+        if (idParam != null && !idParam.trim().isEmpty()) {
+            try {
+                int videoId = Integer.parseInt(idParam.trim());
+                Video v = videoService.findById(videoId);
+                if (v != null && v.getUser().getId() == currentUser.getId()) {
+                    videoService.delete(videoId);
+                    req.getSession().setAttribute("message", "Đã xóa video thành công!");
+                } else {
+                    req.getSession().setAttribute("message", "Không tìm thấy video hoặc bạn không có quyền xóa!");
+                }
+            } catch (NumberFormatException e) {
+                req.getSession().setAttribute("message", "Mã video không hợp lệ!");
             }
         }
         resp.sendRedirect(req.getContextPath() + "/video");
     }
 
     /**
-     * Tiện ích lưu trữ file Multipart an toàn vào thư mục uploads của webapp.
+     * Lưu trữ file vật lý vào thư mục uploads/ trong webapp và trả về đường dẫn tương đối uploads/<tên_file>.
      */
     private String saveUploadedFile(Part part, HttpServletRequest req, String prefix) throws IOException {
         if (part == null || part.getSize() == 0) {
@@ -303,7 +309,7 @@ public class VideoServlet extends HttpServlet {
 
         String uniqueFileName = prefix + "_" + System.currentTimeMillis() + ext;
 
-        // Lưu vào thư mục uploads trong ứng dụng
+        // Lưu vật lý vào thư mục uploads trong ứng dụng webapp
         String uploadDir = req.getServletContext().getRealPath("/uploads");
         File dir = new File(uploadDir);
         if (!dir.exists()) {
@@ -311,6 +317,8 @@ public class VideoServlet extends HttpServlet {
         }
 
         part.write(uploadDir + File.separator + uniqueFileName);
-        return uniqueFileName;
+
+        // Trả về đường dẫn tương đối lưu vào DB: uploads/<tên_file>
+        return "uploads/" + uniqueFileName;
     }
 }

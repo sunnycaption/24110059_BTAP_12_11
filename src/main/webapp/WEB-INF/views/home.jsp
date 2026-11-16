@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang Chủ - Hệ Thống Video & Xác Thực OTP</title>
+    <title>Trang Chủ - Hệ Thống Video & Xác Thực OTP (24110059)</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 </head>
 <body style="display: block; padding: 25px 15px;">
@@ -50,7 +50,7 @@
             <h3 style="color: #2d3748; font-size: 20px;">
                 🔥 10 Video Mới Nhất Trên Hệ Thống
             </h3>
-            <span style="font-size: 13px; color: #718096;">Tự động cập nhật theo thời gian đăng</span>
+            <span style="font-size: 13px; color: #718096;">Sắp xếp giảm dần theo ngày tạo mới nhất (Top 10)</span>
         </div>
 
         <c:choose>
@@ -73,7 +73,8 @@
                                         <img src="${v.poster}" alt="${v.title}" class="video-thumbnail" onerror="this.src='https://placehold.co/600x400/667eea/ffffff?text=Video';">
                                     </c:when>
                                     <c:when test="${not empty v.poster}">
-                                        <img src="${pageContext.request.contextPath}/uploads/${v.poster}" alt="${v.title}" class="video-thumbnail" onerror="this.src='https://placehold.co/600x400/667eea/ffffff?text=Video';">
+                                        <c:set var="cleanPoster" value="${v.poster.startsWith('uploads/') ? v.poster : ('uploads/' += v.poster)}" />
+                                        <img src="${pageContext.request.contextPath}/${cleanPoster}" alt="${v.title}" class="video-thumbnail" onerror="this.src='https://placehold.co/600x400/667eea/ffffff?text=Video';">
                                     </c:when>
                                     <c:otherwise>
                                         <img src="https://placehold.co/600x400/667eea/ffffff?text=No+Poster" alt="${v.title}" class="video-thumbnail">

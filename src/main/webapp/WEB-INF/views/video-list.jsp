@@ -92,7 +92,7 @@
                         <thead>
                             <tr>
                                 <th style="width: 100px;">Ảnh Poster</th>
-                                <th style="width: 110px;">Mã Video</th>
+                                <th style="width: 80px;">Mã Video</th>
                                 <th>Tiêu Đề (Bấm để xem/phát)</th>
                                 <th style="width: 100px;">Lượt Xem</th>
                                 <th style="width: 110px;">Trạng Thái</th>
@@ -108,14 +108,15 @@
                                                 <img src="${v.poster}" alt="${v.title}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;" onerror="this.src='https://placehold.co/160x100/667eea/ffffff?text=Video';">
                                             </c:when>
                                             <c:when test="${not empty v.poster}">
-                                                <img src="${pageContext.request.contextPath}/uploads/${v.poster}" alt="${v.title}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;" onerror="this.src='https://placehold.co/160x100/667eea/ffffff?text=Video';">
+                                                <c:set var="cleanPoster" value="${v.poster.startsWith('uploads/') ? v.poster : ('uploads/' += v.poster)}" />
+                                                <img src="${pageContext.request.contextPath}/${cleanPoster}" alt="${v.title}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;" onerror="this.src='https://placehold.co/160x100/667eea/ffffff?text=Video';">
                                             </c:when>
                                             <c:otherwise>
                                                 <img src="https://placehold.co/160x100/667eea/ffffff?text=No+Poster" alt="${v.title}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px;">
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
-                                    <td><code style="font-weight: bold; color: #4a5568;">${v.videoId}</code></td>
+                                    <td><code style="font-weight: bold; color: #4a5568;">#${v.videoId}</code></td>
                                     <td>
                                         <a href="${pageContext.request.contextPath}/video/detail?id=${v.videoId}" style="color: #2b6cb0; font-weight: 600; text-decoration: none;">
                                             ${v.title}
@@ -145,7 +146,7 @@
                     </table>
                 </div>
 
-                <!-- Phân Trang (Pagination) 6 sp/trang -->
+                <!-- Phân Trang (Pagination) chuẩn 6 sp/trang -->
                 <c:if test="${totalPages > 1}">
                     <div style="text-align: center; margin-top: 25px;">
                         <ul class="pagination">
@@ -194,7 +195,7 @@
                             </c:choose>
                         </ul>
                         <div style="font-size: 13px; color: #718096; margin-top: 8px;">
-                            Trang <strong>${currentPage}</strong> / <strong>${totalPages}</strong> (Hiển thị tối đa 6 video mỗi trang)
+                            Trang <strong>${currentPage}</strong> / <strong>${totalPages}</strong> (Hiển thị cố định 6 video mỗi trang)
                         </div>
                     </div>
                 </c:if>

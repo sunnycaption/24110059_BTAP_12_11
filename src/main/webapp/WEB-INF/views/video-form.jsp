@@ -27,10 +27,10 @@
 
         <div class="header-title" style="text-align: left; border-bottom: 2px solid #edf2f7; padding-bottom: 12px; margin-bottom: 25px;">
             <h2 style="font-size: 22px; color: #2d3748;">
-                ${mode == 'edit' ? 'Chỉnh Sửa Thông Tin Video' : 'Tải Lên Video Mới (Upload Multipart)'}
+                ${mode == 'edit' ? 'Chỉnh Sửa Thông Tin Video' : 'Tải Lên Video Mới (Jakarta Multipart Upload)'}
             </h2>
             <p style="color: #718096; font-size: 14px;">
-                Hỗ trợ tải lên file video MP4/WebM và file ảnh đại diện Poster trực tiếp lên máy chủ
+                Cấu hình Multipart: Hỗ trợ upload trực tiếp file poster và file video (.mp4) lên máy chủ
             </p>
         </div>
 
@@ -41,30 +41,26 @@
         </c:if>
 
         <form action="${pageContext.request.contextPath}/video/${mode}" method="post" enctype="multipart/form-data">
-            <!-- Mã Video -->
-            <div class="form-group">
-                <label for="videoId">Mã Video (Video ID):</label>
-                <input type="text" id="videoId" name="videoId" class="form-control" 
-                       value="${video != null ? video.videoId : ''}" 
-                       placeholder="Ví dụ: VID001 (để trống hệ thống tự sinh mã)" 
-                       ${mode == 'edit' ? 'readonly style="background-color: #edf2f7;"' : ''}>
-            </div>
+            <!-- Hidden ID khi chỉnh sửa -->
+            <c:if test="${mode == 'edit'}">
+                <input type="hidden" name="videoId" value="${video.videoId}">
+            </c:if>
 
             <!-- Tiêu đề Video -->
             <div class="form-group">
                 <label for="title">Tiêu Đề Video (*):</label>
                 <input type="text" id="title" name="title" class="form-control" 
                        value="${video != null ? video.title : ''}" 
-                       placeholder="Nhập tiêu đề video" required>
+                       placeholder="Nhập tiêu đề video" required autofocus>
             </div>
 
             <!-- Upload Ảnh Poster -->
-            <div class="form-group" style="background: #f7fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e0;">
-                <label for="posterFile" style="font-weight: 600; color: #2d3748;">
-                    🖼️ Ảnh đại diện Poster (Tải lên file ảnh):
+            <div class="form-group" style="background: #f7fafc; padding: 16px; border-radius: 8px; border: 1px dashed #cbd5e0;">
+                <label for="posterFile" style="font-weight: 600; color: #2d3748; display: block; margin-bottom: 6px;">
+                    🖼️ File Ảnh Bìa (Poster Image):
                 </label>
                 <input type="file" id="posterFile" name="posterFile" class="form-control" accept="image/*" style="background: #ffffff;">
-                
+
                 <div style="margin-top: 10px;">
                     <label for="posterUrl" style="font-size: 13px; color: #718096; font-weight: normal;">
                         Hoặc nhập đường dẫn ảnh online (URL):
@@ -76,15 +72,15 @@
 
                 <c:if test="${mode == 'edit' && not empty video.poster}">
                     <div style="margin-top: 10px; font-size: 13px; color: #4a5568;">
-                        Ảnh hiện tại: <code>${video.poster}</code>
+                        📌 <em>Ảnh hiện tại: <code>${video.poster}</code> (Nếu không chọn file mới, hệ thống sẽ giữ nguyên).</em>
                     </div>
                 </c:if>
             </div>
 
             <!-- Upload File Video -->
-            <div class="form-group" style="background: #f7fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e0;">
-                <label for="videoFile" style="font-weight: 600; color: #2d3748;">
-                    🎥 File Video (Tải lên file .mp4, .webm):
+            <div class="form-group" style="background: #f7fafc; padding: 16px; border-radius: 8px; border: 1px dashed #cbd5e0;">
+                <label for="videoFile" style="font-weight: 600; color: #2d3748; display: block; margin-bottom: 6px;">
+                    🎥 File Video MP4 (Video File):
                 </label>
                 <input type="file" id="videoFile" name="videoFile" class="form-control" accept="video/mp4,video/webm,video/*" style="background: #ffffff;">
 
@@ -93,13 +89,13 @@
                         Hoặc nhập đường dẫn link video:
                     </label>
                     <input type="text" id="videoUrl" name="videoUrl" class="form-control" 
-                           value="${video != null ? video.videoPath : ''}" 
-                           placeholder="https://example.com/sample_video.mp4">
+                           value="${video != null ? video.videoFile : ''}" 
+                           placeholder="https://example.com/video.mp4">
                 </div>
 
-                <c:if test="${mode == 'edit' && not empty video.videoPath}">
+                <c:if test="${mode == 'edit' && not empty video.videoFile}">
                     <div style="margin-top: 10px; font-size: 13px; color: #4a5568;">
-                        File/Link video hiện tại: <code>${video.videoPath}</code>
+                        📌 <em>Video hiện tại: <code>${video.videoFile}</code> (Nếu không chọn file mới, hệ thống sẽ giữ nguyên).</em>
                     </div>
                 </c:if>
             </div>
@@ -114,12 +110,12 @@
             <!-- Kích hoạt -->
             <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
                 <input type="checkbox" id="active" name="active" ${video == null || video.active ? 'checked' : ''} style="width: 18px; height: 18px;">
-                <label for="active" style="margin-bottom: 0; cursor: pointer;">Công khai video (Cho phép mọi người xem)</label>
+                <label for="active" style="margin-bottom: 0; cursor: pointer;">Công khai video (Cho phép hiển thị trên trang chủ & xem video)</label>
             </div>
 
             <div style="display: flex; gap: 15px; margin-top: 25px;">
                 <button type="submit" class="btn btn-primary" style="flex: 2;">
-                    ${mode == 'edit' ? 'Lưu Cập Nhật' : 'Đăng Video'}
+                    ${mode == 'edit' ? 'Lưu Thay Đổi' : 'Đăng Video'}
                 </button>
                 <a href="${pageContext.request.contextPath}/video" class="btn btn-secondary" style="flex: 1;">
                     Hủy Bỏ

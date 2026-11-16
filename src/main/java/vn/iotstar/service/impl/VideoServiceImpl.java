@@ -37,18 +37,13 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public void delete(String videoId) {
-        if (videoId != null && !videoId.trim().isEmpty()) {
-            videoDAO.delete(videoId.trim());
-        }
+    public void delete(int videoId) {
+        videoDAO.delete(videoId);
     }
 
     @Override
-    public Video findById(String videoId) {
-        if (videoId == null || videoId.trim().isEmpty()) {
-            return null;
-        }
-        return videoDAO.findById(videoId.trim());
+    public Video findById(int videoId) {
+        return videoDAO.findById(videoId);
     }
 
     @Override
@@ -79,9 +74,7 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
-    public void increaseViews(String videoId) {
-        if (videoId != null && !videoId.trim().isEmpty()) {
-            videoDAO.increaseViews(videoId.trim());
-        }
+    public void increaseViews(int videoId) {
+        videoDAO.increaseViews(videoId);
     }
 }

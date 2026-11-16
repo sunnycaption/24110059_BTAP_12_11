@@ -57,7 +57,7 @@ public class VideoDAOImpl implements VideoDAO {
     }
 
     @Override
-    public void delete(String videoId) {
+    public void delete(int videoId) {
         EntityManager em = JpaConfig.getEntityManager();
         EntityTransaction trans = em.getTransaction();
         try {
@@ -81,7 +81,7 @@ public class VideoDAOImpl implements VideoDAO {
     }
 
     @Override
-    public Video findById(String videoId) {
+    public Video findById(int videoId) {
         EntityManager em = JpaConfig.getEntityManager();
         try {
             return em.find(Video.class, videoId);
@@ -166,7 +166,7 @@ public class VideoDAOImpl implements VideoDAO {
     }
 
     @Override
-    public void increaseViews(String videoId) {
+    public void increaseViews(int videoId) {
         EntityManager em = JpaConfig.getEntityManager();
         EntityTransaction trans = em.getTransaction();
         try {
