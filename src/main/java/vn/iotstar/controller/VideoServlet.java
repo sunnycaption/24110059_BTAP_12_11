@@ -175,22 +175,51 @@ public class VideoServlet extends HttpServlet {
         String activeStr = req.getParameter("active");
         boolean active = "on".equals(activeStr) || "true".equalsIgnoreCase(activeStr);
 
-        if (title == null || title.trim().isEmpty()) {
+        if (title == null || title.isBlank()) {
             req.setAttribute("errorMessage", "Tiêu đề video không được để trống!");
             req.setAttribute("mode", "add");
+            req.setAttribute("title", title);
+            req.setAttribute("description", description);
             req.getRequestDispatcher("/WEB-INF/views/video-form.jsp").forward(req, resp);
             return;
         }
 
-        // 1. Upload file Poster bằng Multipart
+        // Kiểm tra định dạng & dung lượng file Poster (nếu có chọn file)
         Part posterPart = req.getPart("posterFile");
+        if (posterPart != null && posterPart.getSize() > 0) {
+            String posterName = Paths.get(posterPart.getSubmittedFileName()).getFileName().toString().toLowerCase();
+            if (!posterName.endsWith(".jpg") && !posterName.endsWith(".jpeg") && 
+                !posterName.endsWith(".png") && !posterName.endsWith(".gif") && !posterName.endsWith(".webp")) {
+                req.setAttribute("errorMessage", "File ảnh poster phải có định dạng hợp lệ (.jpg, .png, .gif, .webp)!");
+                req.setAttribute("mode", "add");
+                req.setAttribute("title", title);
+                req.setAttribute("description", description);
+                req.getRequestDispatcher("/WEB-INF/views/video-form.jsp").forward(req, resp);
+                return;
+            }
+        }
+
+        // Kiểm tra định dạng & dung lượng file Video (nếu có chọn file)
+        Part videoPart = req.getPart("videoFile");
+        if (videoPart != null && videoPart.getSize() > 0) {
+            String videoName = Paths.get(videoPart.getSubmittedFileName()).getFileName().toString().toLowerCase();
+            if (!videoName.endsWith(".mp4") && !videoName.endsWith(".webm") && !videoName.endsWith(".ogg") && !videoName.endsWith(".mkv")) {
+                req.setAttribute("errorMessage", "File video phải có định dạng hợp lệ (.mp4, .webm, .ogg)!");
+                req.setAttribute("mode", "add");
+                req.setAttribute("title", title);
+                req.setAttribute("description", description);
+                req.getRequestDispatcher("/WEB-INF/views/video-form.jsp").forward(req, resp);
+                return;
+            }
+        }
+
+        // 1. Upload file Poster bằng Multipart
         String posterPath = saveUploadedFile(posterPart, req, "poster");
         if (posterPath == null) {
             posterPath = req.getParameter("posterUrl"); // Fallback URL ngoài nếu có
         }
 
         // 2. Upload file Video bằng Multipart
-        Part videoPart = req.getPart("videoFile");
         String videoFilePath = saveUploadedFile(videoPart, req, "video");
         if (videoFilePath == null) {
             videoFilePath = req.getParameter("videoUrl"); // Fallback URL ngoài nếu có
@@ -227,6 +256,14 @@ public class VideoServlet extends HttpServlet {
             String description = req.getParameter("description");
             String activeStr = req.getParameter("active");
             boolean active = "on".equals(activeStr) || "true".equalsIgnoreCase(activeStr);
+
+            if (title == null || title.isBlank()) {
+                req.setAttribute("errorMessage", "Tiêu đề video không được để trống!");
+                req.setAttribute("video", existing);
+                req.setAttribute("mode", "edit");
+                req.getRequestDispatcher("/WEB-INF/views/video-form.jsp").forward(req, resp);
+                return;
+            }
 
             existing.setTitle(title.trim());
             existing.setDescription(description);

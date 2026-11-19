@@ -57,16 +57,27 @@ public class LoginServlet extends HttpServlet {
         String username = req.getParameter("username");
         String password = req.getParameter("password");
 
-        // 1. Kiểm tra dữ liệu rỗng
-        if (username == null || username.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+        // 1. Server-side Validation: kiểm tra null/rỗng
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
             req.setAttribute("errorMessage", "Vui lòng nhập đầy đủ Tên đăng nhập và Mật khẩu!");
             req.setAttribute("username", username);
             req.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(req, resp);
             return;
         }
 
-        // 2. Gọi tầng Service kiểm tra đăng nhập qua BCrypt
-        User user = userService.login(username.trim(), password.trim());
+        username = username.trim();
+        password = password.trim();
+
+        // 2. Server-side Validation: độ dài mật khẩu >= 6 ký tự
+        if (password.length() < 6) {
+            req.setAttribute("errorMessage", "Mật khẩu phải chứa ít nhất 6 ký tự!");
+            req.setAttribute("username", username);
+            req.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(req, resp);
+            return;
+        }
+
+        // 3. Gọi tầng Service kiểm tra đăng nhập qua BCrypt
+        User user = userService.login(username, password);
 
         if (user != null) {
             // 3. Kiểm tra trạng thái kích hoạt tài khoản

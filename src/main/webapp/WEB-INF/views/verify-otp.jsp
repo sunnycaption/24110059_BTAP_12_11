@@ -1,63 +1,54 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xác thực mã OTP - Java Web MVC JPA</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <title>Xác Thực OTP - Java Web MVC JPA</title>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="header-title">
-            <h2>Xác Thực Mã OTP</h2>
-            <p>Nhập mã 6 chữ số đã được gửi qua email của bạn</p>
+    <div class="auth-brand">
+        <h3><i class="bi bi-shield-check"></i> Xác Thực OTP</h3>
+        <p>Nhập mã OTP 6 chữ số đã gửi về email của bạn</p>
+    </div>
+
+    <c:if test="${not empty errorMessage}">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> ${errorMessage}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </c:if>
+    <c:if test="${not empty infoMessage}">
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-info-circle"></i> ${infoMessage}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </c:if>
+
+    <form action="${pageContext.request.contextPath}/verify-otp" method="post" class="needs-validation" novalidate>
+        <input type="hidden" name="email" value="${email != null ? email : sessionScope.verifyEmail}">
+
+        <div class="mb-3">
+            <label for="otp" class="form-label">Mã OTP (6 chữ số) <span class="text-danger">*</span></label>
+            <input type="text" id="otp" name="otp" class="form-control form-control-lg text-center"
+                   placeholder="______" required pattern="[0-9]{6}" maxlength="6"
+                   style="letter-spacing: 10px; font-size: 24px; font-weight: bold;">
+            <div class="invalid-feedback">Vui lòng nhập đúng 6 chữ số OTP.</div>
         </div>
 
-        <c:if test="${not empty infoMessage}">
-            <div class="alert alert-info">
-                ${infoMessage}
-            </div>
-        </c:if>
+        <button type="submit" class="btn btn-success w-100">
+            <i class="bi bi-check-circle"></i> Xác Nhận OTP
+        </button>
+    </form>
 
-        <c:if test="${not empty errorMessage}">
-            <div class="alert alert-danger">
-                ${errorMessage}
-            </div>
-        </c:if>
-
-        <form action="${pageContext.request.contextPath}/verify-otp" method="post">
-            <div class="form-group">
-                <label for="email">Email tài khoản:</label>
-                <input type="email" id="email" name="email" class="form-control" 
-                       value="${email != null ? email : ''}" 
-                       placeholder="Nhập email tài khoản" required>
-            </div>
-
-            <div class="form-group">
-                <label for="otp">Mã xác thực OTP (6 chữ số):</label>
-                <input type="text" id="otp" name="otp" class="form-control" 
-                       placeholder="Ví dụ: 123456" maxlength="6" 
-                       style="text-align: center; font-size: 24px; letter-spacing: 6px; font-weight: bold; color: #667eea;" required autofocus>
-            </div>
-
-            <div style="font-size: 13px; color: #718096; margin-bottom: 20px; text-align: center;">
-                ⏱️ Mã OTP có hiệu lực trong vòng <strong>5 phút</strong>.
-            </div>
-
-            <button type="submit" class="btn btn-primary">Xác Thực & Kích Hoạt</button>
-        </form>
-
-        <form action="${pageContext.request.contextPath}/verify-otp" method="post" style="margin-top: 12px;">
+    <div class="auth-footer-text mt-3">
+        <form action="${pageContext.request.contextPath}/verify-otp" method="post" style="display:inline;">
+            <input type="hidden" name="email" value="${email != null ? email : sessionScope.verifyEmail}">
             <input type="hidden" name="action" value="resend">
-            <input type="hidden" name="email" value="${email}">
-            <button type="submit" class="btn btn-secondary">Gửi lại mã OTP qua Email</button>
+            <button type="submit" class="btn btn-link btn-sm text-decoration-none">
+                <i class="bi bi-arrow-repeat"></i> Gửi lại mã OTP
+            </button>
         </form>
-
-        <div class="auth-footer">
-            <a href="${pageContext.request.contextPath}/login">&larr; Quay lại trang Đăng nhập</a>
-        </div>
+        <br>
+        <a href="${pageContext.request.contextPath}/login"><i class="bi bi-arrow-left"></i> Quay lại đăng nhập</a>
     </div>
 </body>
 </html>

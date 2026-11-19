@@ -79,9 +79,16 @@ public class VerifyOtpServlet extends HttpServlet {
             return;
         }
 
-        // Kiểm tra mã OTP nhập vào
-        if (otp == null || otp.trim().isEmpty()) {
+        // Kiểm tra mã OTP nhập vào (Server-side validation)
+        if (otp == null || otp.isBlank()) {
             req.setAttribute("errorMessage", "Vui lòng nhập mã OTP 6 chữ số!");
+            req.getRequestDispatcher("/WEB-INF/views/verify-otp.jsp").forward(req, resp);
+            return;
+        }
+
+        otp = otp.trim();
+        if (!otp.matches("^[0-9]{6}$")) {
+            req.setAttribute("errorMessage", "Mã OTP phải gồm đúng 6 chữ số!");
             req.getRequestDispatcher("/WEB-INF/views/verify-otp.jsp").forward(req, resp);
             return;
         }

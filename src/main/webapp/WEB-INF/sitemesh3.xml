@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemesh>
+    <!-- Layout decorator chính cho toàn bộ trang (Bootstrap 5) -->
+    <mapping path="/*" decorator="/WEB-INF/decorators/main.jsp" />
+
+    <!-- Loại trừ các trang xác thực (auth) khỏi decorator chính,
+         sử dụng layout riêng đơn giản cho login/register/forgot/verify/reset -->
+    <mapping path="/login" decorator="/WEB-INF/decorators/auth.jsp" />
+    <mapping path="/register" decorator="/WEB-INF/decorators/auth.jsp" />
+    <mapping path="/forgot-password" decorator="/WEB-INF/decorators/auth.jsp" />
+    <mapping path="/verify-otp" decorator="/WEB-INF/decorators/auth.jsp" />
+    <mapping path="/reset-password" decorator="/WEB-INF/decorators/auth.jsp" />
+    <mapping path="/verify-email-otp" decorator="/WEB-INF/decorators/auth.jsp" />
+
+    <!-- Loại trừ file tĩnh, API và uploads -->
+    <mapping path="/assets/*" exclude="true" />
+    <mapping path="/uploads/*" exclude="true" />
+</sitemesh>

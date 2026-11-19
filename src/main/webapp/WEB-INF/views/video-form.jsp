@@ -1,127 +1,102 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${mode == 'edit' ? 'Chỉnh Sửa Video' : 'Thêm Video Mới'} - Upload Multipart (24110059)</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <title>${mode == 'edit' ? 'Chỉnh sửa Video' : 'Đăng Video Mới'} - Java Web MVC JPA</title>
 </head>
-<body style="display: block; padding: 25px 15px;">
-    <div class="container-wide" style="max-width: 800px;">
-        <!-- Navigation Bar -->
-        <div class="navbar-custom">
-            <div style="font-size: 20px; font-weight: bold; color: #667eea;">
-                🎬 Video Portal <span style="font-size: 13px; color: #718096; font-weight: normal;">(24110059)</span>
-            </div>
-            <div class="nav-links">
-                <a href="${pageContext.request.contextPath}/home">Trang Chủ</a>
-                <a href="${pageContext.request.contextPath}/video">Videos Của Tôi</a>
-                <a href="${pageContext.request.contextPath}/video/add" class="${mode == 'add' ? 'active' : ''}">+ Đăng Video</a>
-                <span style="color: #cbd5e0; margin: 0 10px;">|</span>
-                <span style="font-weight: 600; color: #2d3748;">👤 ${sessionScope.currentUser.fullname}</span>
-                <a href="${pageContext.request.contextPath}/logout" style="color: #e53e3e;">Đăng Xuất</a>
+<body>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <c:choose>
+                            <c:when test="${mode == 'edit'}"><i class="bi bi-pencil-square"></i> Chỉnh Sửa Video</c:when>
+                            <c:otherwise><i class="bi bi-plus-circle"></i> Đăng Video Mới</c:otherwise>
+                        </c:choose>
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <c:if test="${not empty errorMessage}">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i> ${errorMessage}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </c:if>
+
+                    <form action="${pageContext.request.contextPath}/video/${mode == 'edit' ? 'edit' : 'add'}"
+                          method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+
+                        <c:if test="${mode == 'edit'}">
+                            <input type="hidden" name="videoId" value="${video.videoId}">
+                        </c:if>
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Tiêu đề Video <span class="text-danger">*</span></label>
+                            <input type="text" id="title" name="title" class="form-control"
+                                   value="${mode == 'edit' ? video.title : (title != null ? title : '')}"
+                                   placeholder="Nhập tiêu đề video" required>
+                            <div class="invalid-feedback">Tiêu đề video không được để trống.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Mô tả</label>
+                            <textarea id="description" name="description" class="form-control" rows="3"
+                                      placeholder="Mô tả nội dung video">${mode == 'edit' ? video.description : (description != null ? description : '')}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="posterFile" class="form-label">Ảnh Poster (image/*)</label>
+                                <input type="file" id="posterFile" name="posterFile" class="form-control" accept="image/*">
+                                <small class="text-muted">Chấp nhận: JPG, PNG, GIF (tối đa 50MB)</small>
+                                <c:if test="${mode == 'edit' && not empty video.poster}">
+                                    <div class="mt-2">
+                                        <small class="text-info"><i class="bi bi-image"></i> Hiện tại: ${video.poster}</small>
+                                    </div>
+                                </c:if>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="videoFile" class="form-label">File Video (video/*)</label>
+                                <input type="file" id="videoFile" name="videoFile" class="form-control" accept="video/*">
+                                <small class="text-muted">Chấp nhận: MP4, WebM (tối đa 50MB)</small>
+                                <c:if test="${mode == 'edit' && not empty video.videoFile}">
+                                    <div class="mt-2">
+                                        <small class="text-info"><i class="bi bi-camera-video"></i> Hiện tại: ${video.videoFile}</small>
+                                    </div>
+                                </c:if>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="posterUrl" class="form-label">Hoặc URL Poster</label>
+                                <input type="url" id="posterUrl" name="posterUrl" class="form-control" placeholder="https://...">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="videoUrl" class="form-label">Hoặc URL Video</label>
+                                <input type="url" id="videoUrl" name="videoUrl" class="form-control" placeholder="https://...">
+                            </div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" id="active" name="active" class="form-check-input" value="true"
+                                   ${mode == 'edit' ? (video.active ? 'checked' : '') : 'checked'}>
+                            <label for="active" class="form-check-label">Hiển thị video (Active)</label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> ${mode == 'edit' ? 'Cập Nhật' : 'Đăng Video'}
+                            </button>
+                            <a href="${pageContext.request.contextPath}/video" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-
-        <div class="header-title" style="text-align: left; border-bottom: 2px solid #edf2f7; padding-bottom: 12px; margin-bottom: 25px;">
-            <h2 style="font-size: 22px; color: #2d3748;">
-                ${mode == 'edit' ? 'Chỉnh Sửa Thông Tin Video' : 'Tải Lên Video Mới (Jakarta Multipart Upload)'}
-            </h2>
-            <p style="color: #718096; font-size: 14px;">
-                Cấu hình Multipart: Hỗ trợ upload trực tiếp file poster và file video (.mp4) lên máy chủ
-            </p>
-        </div>
-
-        <c:if test="${not empty errorMessage}">
-            <div class="alert alert-danger">
-                ${errorMessage}
-            </div>
-        </c:if>
-
-        <form action="${pageContext.request.contextPath}/video/${mode}" method="post" enctype="multipart/form-data">
-            <!-- Hidden ID khi chỉnh sửa -->
-            <c:if test="${mode == 'edit'}">
-                <input type="hidden" name="videoId" value="${video.videoId}">
-            </c:if>
-
-            <!-- Tiêu đề Video -->
-            <div class="form-group">
-                <label for="title">Tiêu Đề Video (*):</label>
-                <input type="text" id="title" name="title" class="form-control" 
-                       value="${video != null ? video.title : ''}" 
-                       placeholder="Nhập tiêu đề video" required autofocus>
-            </div>
-
-            <!-- Upload Ảnh Poster -->
-            <div class="form-group" style="background: #f7fafc; padding: 16px; border-radius: 8px; border: 1px dashed #cbd5e0;">
-                <label for="posterFile" style="font-weight: 600; color: #2d3748; display: block; margin-bottom: 6px;">
-                    🖼️ File Ảnh Bìa (Poster Image):
-                </label>
-                <input type="file" id="posterFile" name="posterFile" class="form-control" accept="image/*" style="background: #ffffff;">
-
-                <div style="margin-top: 10px;">
-                    <label for="posterUrl" style="font-size: 13px; color: #718096; font-weight: normal;">
-                        Hoặc nhập đường dẫn ảnh online (URL):
-                    </label>
-                    <input type="text" id="posterUrl" name="posterUrl" class="form-control" 
-                           value="${video != null ? video.poster : ''}" 
-                           placeholder="https://example.com/poster.jpg">
-                </div>
-
-                <c:if test="${mode == 'edit' && not empty video.poster}">
-                    <div style="margin-top: 10px; font-size: 13px; color: #4a5568;">
-                        📌 <em>Ảnh hiện tại: <code>${video.poster}</code> (Nếu không chọn file mới, hệ thống sẽ giữ nguyên).</em>
-                    </div>
-                </c:if>
-            </div>
-
-            <!-- Upload File Video -->
-            <div class="form-group" style="background: #f7fafc; padding: 16px; border-radius: 8px; border: 1px dashed #cbd5e0;">
-                <label for="videoFile" style="font-weight: 600; color: #2d3748; display: block; margin-bottom: 6px;">
-                    🎥 File Video MP4 (Video File):
-                </label>
-                <input type="file" id="videoFile" name="videoFile" class="form-control" accept="video/mp4,video/webm,video/*" style="background: #ffffff;">
-
-                <div style="margin-top: 10px;">
-                    <label for="videoUrl" style="font-size: 13px; color: #718096; font-weight: normal;">
-                        Hoặc nhập đường dẫn link video:
-                    </label>
-                    <input type="text" id="videoUrl" name="videoUrl" class="form-control" 
-                           value="${video != null ? video.videoFile : ''}" 
-                           placeholder="https://example.com/video.mp4">
-                </div>
-
-                <c:if test="${mode == 'edit' && not empty video.videoFile}">
-                    <div style="margin-top: 10px; font-size: 13px; color: #4a5568;">
-                        📌 <em>Video hiện tại: <code>${video.videoFile}</code> (Nếu không chọn file mới, hệ thống sẽ giữ nguyên).</em>
-                    </div>
-                </c:if>
-            </div>
-
-            <!-- Mô tả chi tiết -->
-            <div class="form-group">
-                <label for="description">Mô Tả Video:</label>
-                <textarea id="description" name="description" class="form-control" rows="4" 
-                          placeholder="Nhập tóm tắt nội dung video">${video != null ? video.description : ''}</textarea>
-            </div>
-
-            <!-- Kích hoạt -->
-            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-                <input type="checkbox" id="active" name="active" ${video == null || video.active ? 'checked' : ''} style="width: 18px; height: 18px;">
-                <label for="active" style="margin-bottom: 0; cursor: pointer;">Công khai video (Cho phép hiển thị trên trang chủ & xem video)</label>
-            </div>
-
-            <div style="display: flex; gap: 15px; margin-top: 25px;">
-                <button type="submit" class="btn btn-primary" style="flex: 2;">
-                    ${mode == 'edit' ? 'Lưu Thay Đổi' : 'Đăng Video'}
-                </button>
-                <a href="${pageContext.request.contextPath}/video" class="btn btn-secondary" style="flex: 1;">
-                    Hủy Bỏ
-                </a>
-            </div>
-        </form>
     </div>
 </body>
 </html>

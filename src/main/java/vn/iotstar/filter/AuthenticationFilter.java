@@ -12,7 +12,7 @@ import java.io.IOException;
  * Filter xác thực người dùng (Authentication Filter).
  * Chặn truy cập trang chủ /home và các trang quản lý video cá nhân nếu chưa đăng nhập.
  */
-@WebFilter(urlPatterns = {"/home", "/home/*", "/video", "/video/add", "/video/edit", "/video/delete"})
+@WebFilter(urlPatterns = {"/home", "/home/*", "/video", "/video/*", "/profile", "/profile/*"})
 public class AuthenticationFilter implements Filter {
 
     @Override

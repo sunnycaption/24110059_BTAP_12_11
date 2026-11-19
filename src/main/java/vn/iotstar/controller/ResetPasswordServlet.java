@@ -76,13 +76,23 @@ public class ResetPasswordServlet extends HttpServlet {
 
         String otp = req.getParameter("otp");
         String password = req.getParameter("password");
+        if (password == null || password.isBlank()) {
+            password = req.getParameter("newPassword");
+        }
         String confirmPassword = req.getParameter("confirmPassword");
 
-        if (email == null || email.trim().isEmpty() ||
-            otp == null || otp.trim().isEmpty() ||
-            password == null || password.trim().isEmpty() ||
-            confirmPassword == null || confirmPassword.trim().isEmpty()) {
+        if (email == null || email.isBlank() ||
+            otp == null || otp.isBlank() ||
+            password == null || password.isBlank() ||
+            confirmPassword == null || confirmPassword.isBlank()) {
             req.setAttribute("errorMessage", "Vui lòng nhập đầy đủ tất cả các trường!");
+            req.getRequestDispatcher("/WEB-INF/views/reset-password.jsp").forward(req, resp);
+            return;
+        }
+
+        otp = otp.trim();
+        if (!otp.matches("^[0-9]{6}$")) {
+            req.setAttribute("errorMessage", "Mã OTP phải gồm đúng 6 chữ số!");
             req.getRequestDispatcher("/WEB-INF/views/reset-password.jsp").forward(req, resp);
             return;
         }

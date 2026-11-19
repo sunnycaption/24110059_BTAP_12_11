@@ -7,6 +7,16 @@
     
     <display-name>Java Web MVC JPA Application</display-name>
 
+    <!-- SiteMesh 3 Layout Decorator Filter -->
+    <filter>
+        <filter-name>sitemesh</filter-name>
+        <filter-class>org.sitemesh.config.ConfigurableSiteMeshFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>sitemesh</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <welcome-file-list>
         <welcome-file>login</welcome-file>
     </welcome-file-list>
