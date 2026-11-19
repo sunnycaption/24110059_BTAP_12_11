@@ -29,7 +29,7 @@ public class VerifyEmailOtpServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = (session != null) ? (User) (session.getAttribute("currentUser") != null ? session.getAttribute("currentUser") : session.getAttribute("user")) : null;
         if (currentUser == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
@@ -60,7 +60,7 @@ public class VerifyEmailOtpServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
 
         HttpSession session = req.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = (session != null) ? (User) (session.getAttribute("currentUser") != null ? session.getAttribute("currentUser") : session.getAttribute("user")) : null;
         if (currentUser == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
@@ -97,6 +97,7 @@ public class VerifyEmailOtpServlet extends HttpServlet {
         if (verified) {
             User updatedUser = userService.findById(currentUser.getId());
             session.setAttribute("currentUser", updatedUser);
+            session.setAttribute("user", updatedUser);
             session.setAttribute("successMessage", "Thay đổi địa chỉ email thành công! Email mới của bạn là: " + updatedUser.getEmail());
             resp.sendRedirect(req.getContextPath() + "/profile");
         } else {

@@ -12,7 +12,16 @@
     <mapping path="/reset-password" decorator="/WEB-INF/decorators/auth.jsp" />
     <mapping path="/verify-email-otp" decorator="/WEB-INF/decorators/auth.jsp" />
 
-    <!-- Loại trừ file tĩnh, API và uploads -->
-    <mapping path="/assets/*" exclude="true" />
+    <!-- Loại trừ file tĩnh, API, streaming media và uploads để không bị can thiệp -->
     <mapping path="/uploads/*" exclude="true" />
+    <mapping path="/assets/*" exclude="true" />
+    <mapping path="/css/*" exclude="true" />
+    <mapping path="/js/*" exclude="true" />
+    <mapping path="/images/*" exclude="true" />
+    <mapping path="/static/*" exclude="true" />
+    <mapping path="*.css" exclude="true" />
+    <mapping path="*.js" exclude="true" />
+    <mapping path="*.mp4" exclude="true" />
+    <mapping path="*.webm" exclude="true" />
+    <mapping path="*.ico" exclude="true" />
 </sitemesh>

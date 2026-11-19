@@ -45,7 +45,7 @@ public class ProfileServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = (session != null) ? (User) (session.getAttribute("currentUser") != null ? session.getAttribute("currentUser") : session.getAttribute("user")) : null;
         if (currentUser == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
@@ -55,6 +55,7 @@ public class ProfileServlet extends HttpServlet {
         User freshUser = userService.findById(currentUser.getId());
         if (freshUser != null) {
             session.setAttribute("currentUser", freshUser);
+            session.setAttribute("user", freshUser);
             req.setAttribute("user", freshUser);
         } else {
             req.setAttribute("user", currentUser);
@@ -88,7 +89,7 @@ public class ProfileServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
 
         HttpSession session = req.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = (session != null) ? (User) (session.getAttribute("currentUser") != null ? session.getAttribute("currentUser") : session.getAttribute("user")) : null;
         if (currentUser == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
@@ -121,10 +122,21 @@ public class ProfileServlet extends HttpServlet {
         String fullname = req.getParameter("fullname");
         String phone = req.getParameter("phone");
 
+        // Tạo đối tượng tạm chứa các giá trị người dùng vừa nhập để giữ nguyên trên form nếu có lỗi
+        User formUser = new User();
+        formUser.setId(currentUser.getId());
+        formUser.setUsername(currentUser.getUsername());
+        formUser.setFullname(fullname != null ? fullname : currentUser.getFullname());
+        formUser.setPhone(phone != null ? phone : currentUser.getPhone());
+        formUser.setEmail(currentUser.getEmail());
+        formUser.setImages(currentUser.getImages());
+        formUser.setPendingEmail(currentUser.getPendingEmail());
+        formUser.setCreatedAt(currentUser.getCreatedAt());
+
         // 1. Server-side Validation: Họ và tên
         if (fullname == null || fullname.isBlank()) {
             req.setAttribute("errorMessage", "Họ và tên không được để trống!");
-            req.setAttribute("user", currentUser);
+            req.setAttribute("user", formUser);
             req.getRequestDispatcher("/WEB-INF/views/profile.jsp").forward(req, resp);
             return;
         }
@@ -136,7 +148,7 @@ public class ProfileServlet extends HttpServlet {
             phone = phone.trim();
             if (!PHONE_VN_PATTERN.matcher(phone).matches()) {
                 req.setAttribute("errorMessage", "Số điện thoại không hợp lệ! Vui lòng nhập 10 chữ số bắt đầu bằng 0.");
-                req.setAttribute("user", currentUser);
+                req.setAttribute("user", formUser);
                 req.getRequestDispatcher("/WEB-INF/views/profile.jsp").forward(req, resp);
                 return;
             }
@@ -155,7 +167,7 @@ public class ProfileServlet extends HttpServlet {
                         && !fileNameLower.endsWith(".png") && !fileNameLower.endsWith(".gif")
                         && !fileNameLower.endsWith(".webp")) {
                     req.setAttribute("errorMessage", "Định dạng ảnh không hợp lệ! Chỉ chấp nhận file JPG, PNG, GIF, WEBP.");
-                    req.setAttribute("user", currentUser);
+                    req.setAttribute("user", formUser);
                     req.getRequestDispatcher("/WEB-INF/views/profile.jsp").forward(req, resp);
                     return;
                 }
@@ -172,6 +184,7 @@ public class ProfileServlet extends HttpServlet {
         if (updated) {
             User fresh = userService.findById(currentUser.getId());
             req.getSession().setAttribute("currentUser", fresh);
+            req.getSession().setAttribute("user", fresh);
             req.getSession().setAttribute("successMessage", "Cập nhật thông tin hồ sơ thành công!");
         } else {
             req.getSession().setAttribute("errorMessage", "Không thể cập nhật hồ sơ do lỗi hệ thống!");
@@ -186,6 +199,7 @@ public class ProfileServlet extends HttpServlet {
     private void handleChangeEmail(HttpServletRequest req, HttpServletResponse resp, User currentUser)
             throws ServletException, IOException {
         String newEmail = req.getParameter("newEmail");
+        req.setAttribute("newEmail", newEmail);
 
         if (newEmail == null || newEmail.isBlank()) {
             req.setAttribute("errorMessage", "Vui lòng nhập địa chỉ email mới!");
@@ -251,6 +265,7 @@ public class ProfileServlet extends HttpServlet {
         if (verified) {
             User fresh = userService.findById(currentUser.getId());
             req.getSession().setAttribute("currentUser", fresh);
+            req.getSession().setAttribute("user", fresh);
             req.getSession().setAttribute("successMessage", "Thay đổi địa chỉ email thành công! Email mới: " + fresh.getEmail());
             resp.sendRedirect(req.getContextPath() + "/profile");
         } else {

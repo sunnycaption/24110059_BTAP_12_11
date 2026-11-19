@@ -12,7 +12,7 @@ import java.io.IOException;
  * Filter xác thực người dùng (Authentication Filter).
  * Chặn truy cập trang chủ /home và các trang quản lý video cá nhân nếu chưa đăng nhập.
  */
-@WebFilter(urlPatterns = {"/home", "/home/*", "/video", "/video/*", "/profile", "/profile/*"})
+@WebFilter(urlPatterns = {"/home", "/home/*", "/video", "/video/*", "/profile", "/profile/*", "/verify-email-otp", "/verify-email-otp/*"})
 public class AuthenticationFilter implements Filter {
 
     @Override
@@ -27,7 +27,7 @@ public class AuthenticationFilter implements Filter {
         HttpServletResponse resp = (HttpServletResponse) response;
 
         HttpSession session = req.getSession(false);
-        boolean isLoggedIn = (session != null && session.getAttribute("currentUser") != null);
+        boolean isLoggedIn = (session != null && (session.getAttribute("currentUser") != null || session.getAttribute("user") != null));
 
         if (isLoggedIn) {
             chain.doFilter(request, response);

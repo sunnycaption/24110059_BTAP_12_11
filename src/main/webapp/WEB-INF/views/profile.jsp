@@ -168,6 +168,7 @@
                             <div class="col-md-6">
                                 <label for="newEmail" class="form-label">Email mới cần đổi <span class="text-danger">*</span></label>
                                 <input type="email" id="newEmail" name="newEmail" class="form-control"
+                                       value="${newEmail != null ? newEmail : ''}"
                                        placeholder="Ví dụ: new_email@gmail.com" required>
                                 <div class="invalid-feedback">Vui lòng nhập đúng định dạng Email mới.</div>
                             </div>

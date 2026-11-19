@@ -47,23 +47,24 @@
                         </a>
                     </li>
                 </ul>
-                <c:if test="${not empty sessionScope.currentUser}">
+                <c:set var="authUser" value="${not empty sessionScope.currentUser ? sessionScope.currentUser : sessionScope.user}" />
+                <c:if test="${not empty authUser}">
                     <ul class="navbar-nav">
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <c:choose>
-                                    <c:when test="${not empty sessionScope.currentUser.images && (sessionScope.currentUser.images.startsWith('http://') || sessionScope.currentUser.images.startsWith('https://'))}">
-                                        <img src="${sessionScope.currentUser.images}" alt="Avatar" class="avatar-img me-1" onerror="this.src='https://placehold.co/32x32/667eea/fff?text=U';">
+                                    <c:when test="${not empty authUser.images && (authUser.images.startsWith('http://') || authUser.images.startsWith('https://'))}">
+                                        <img src="${authUser.images}" alt="Avatar" class="avatar-img me-1" onerror="this.src='https://placehold.co/32x32/667eea/fff?text=U';">
                                     </c:when>
-                                    <c:when test="${not empty sessionScope.currentUser.images}">
-                                        <img src="${pageContext.request.contextPath}/${sessionScope.currentUser.images.startsWith('uploads/') ? sessionScope.currentUser.images : 'uploads/'.concat(sessionScope.currentUser.images)}" alt="Avatar" class="avatar-img me-1" onerror="this.src='https://placehold.co/32x32/667eea/fff?text=U';">
+                                    <c:when test="${not empty authUser.images}">
+                                        <img src="${pageContext.request.contextPath}/${authUser.images.startsWith('uploads/') ? authUser.images : 'uploads/'.concat(authUser.images)}" alt="Avatar" class="avatar-img me-1" onerror="this.src='https://placehold.co/32x32/667eea/fff?text=U';">
                                     </c:when>
                                     <c:otherwise>
                                         <i class="bi bi-person-circle me-1"></i>
                                     </c:otherwise>
                                 </c:choose>
-                                ${sessionScope.currentUser.fullname}
+                                ${authUser.fullname}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li>

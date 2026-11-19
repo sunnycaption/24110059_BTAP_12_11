@@ -92,9 +92,10 @@ public class LoginServlet extends HttpServlet {
                 return;
             }
 
-            // Đăng nhập thành công -> lưu thông tin vào HttpSession
+            // Đăng nhập thành công -> lưu thông tin vào HttpSession (hỗ trợ cả key currentUser và user)
             HttpSession session = req.getSession();
             session.setAttribute("currentUser", user);
+            session.setAttribute("user", user);
 
             // Chuyển hướng sang trang chủ
             resp.sendRedirect(req.getContextPath() + "/home");
