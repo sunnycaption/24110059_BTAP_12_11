@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemesh>
-    <!-- Layout decorator chính cho toàn bộ trang (Bootstrap 5) -->
-    <mapping path="/*" decorator="/WEB-INF/decorators/main.jsp" />
+    <!-- Mappings to Layout Decorators -->
+    <mapping path="/*" name="web" decorator="/WEB-INF/decorators/web.jsp" />
+    <mapping path="/admin/*" name="admin" decorator="/WEB-INF/decorators/admin.jsp" />
+    <mapping path="/login" name="login" decorator="/WEB-INF/decorators/login.jsp" />
+    <mapping path="/register" name="login" decorator="/WEB-INF/decorators/login.jsp" />
+    <mapping path="/forgot-password" name="login" decorator="/WEB-INF/decorators/login.jsp" />
+    <mapping path="/verify-otp" name="login" decorator="/WEB-INF/decorators/login.jsp" />
+    <mapping path="/reset-password" name="login" decorator="/WEB-INF/decorators/login.jsp" />
+    <mapping path="/verify-email-otp" name="login" decorator="/WEB-INF/decorators/login.jsp" />
 
-    <!-- Loại trừ các trang xác thực (auth) khỏi decorator chính,
-         sử dụng layout riêng đơn giản cho login/register/forgot/verify/reset -->
-    <mapping path="/login" decorator="/WEB-INF/decorators/auth.jsp" />
-    <mapping path="/register" decorator="/WEB-INF/decorators/auth.jsp" />
-    <mapping path="/forgot-password" decorator="/WEB-INF/decorators/auth.jsp" />
-    <mapping path="/verify-otp" decorator="/WEB-INF/decorators/auth.jsp" />
-    <mapping path="/reset-password" decorator="/WEB-INF/decorators/auth.jsp" />
-    <mapping path="/verify-email-otp" decorator="/WEB-INF/decorators/auth.jsp" />
-
-    <!-- Loại trừ file tĩnh, API, streaming media và uploads để không bị can thiệp -->
+    <!-- Exclude static resources and media streams from decoration -->
+    <mapping path="/api*" exclude="true" />
     <mapping path="/uploads/*" exclude="true" />
     <mapping path="/assets/*" exclude="true" />
     <mapping path="/css/*" exclude="true" />

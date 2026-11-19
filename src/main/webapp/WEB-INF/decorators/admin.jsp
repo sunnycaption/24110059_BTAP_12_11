@@ -1,65 +1,59 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ include file="/common/taglib.jsp" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><sitemesh:write property="title">Xác Thực - Java Web MVC JPA</sitemesh:write></title>
+    <title><sitemesh:write property="title">Quản Trị Hệ Thống - Java Web MVC</sitemesh:write></title>
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding-top: 56px;
+            background-color: #f1f3f5;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
         }
-        .auth-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            padding: 40px;
-            max-width: 460px;
-            width: 100%;
+        .content-wrapper {
+            flex: 1 0 auto;
+            padding: 24px 0;
         }
-        .auth-brand {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .auth-brand h3 {
-            color: #2d3748;
-            font-weight: 700;
-        }
-        .auth-brand p {
-            color: #718096;
+        .footer {
+            flex-shrink: 0;
+            background: #212529;
+            color: #adb5bd;
             font-size: 14px;
         }
-        .auth-footer-text {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #718096;
-        }
-        .auth-footer-text a { color: #667eea; text-decoration: none; font-weight: 600; }
-        .auth-footer-text a:hover { text-decoration: underline; }
     </style>
     <sitemesh:write property="head"/>
 </head>
 <body>
-    <div class="auth-card">
-        <sitemesh:write property="body"/>
+    <!-- Admin Header -->
+    <c:import url="/common/admin/header.jsp"/>
+
+    <!-- Main Container with Sidebar + Body -->
+    <div class="content-wrapper">
+        <div class="container-fluid px-4">
+            <div class="row">
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <c:import url="/common/admin/left.jsp"/>
+                </div>
+                <div class="col-lg-9 col-md-8">
+                    <sitemesh:write property="body"/>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="auth-footer-text mt-3">
-        <small class="text-white-50">&copy; 2026 Java Web MVC JPA - MSSV: 24110059</small>
-    </div>
+
+    <!-- Admin Footer -->
+    <c:import url="/common/admin/footer.jsp"/>
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap 5 Client-side Form Validation Script -->
     <script>
     (function () {
         'use strict';

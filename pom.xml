@@ -114,11 +114,11 @@
             <version>2.0.3</version>
         </dependency>
 
-        <!-- SiteMesh 3 Layout Decorator (Jakarta Servlet compatible) -->
+        <!-- Layout Master -->
         <dependency>
             <groupId>org.sitemesh</groupId>
-            <artifactId>sitemesh</artifactId>
-            <version>3.2.1</version>
+            <artifactId>sitemesh-webfilter</artifactId>
+            <version>3.3.0</version>
         </dependency>
 
         <!-- Cloudinary SDK for image upload -->
