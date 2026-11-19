@@ -223,6 +223,84 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User findById(int id) {
+        return userDAO.findById(id);
+    }
+
+    @Override
+    public boolean updateProfile(int userId, String fullname, String phone, String images) {
+        User user = userDAO.findById(userId);
+        if (user == null) {
+            return false;
+        }
+        if (fullname != null && !fullname.isBlank()) {
+            user.setFullname(fullname.trim());
+        }
+        if (phone != null) {
+            user.setPhone(phone.trim());
+        }
+        if (images != null && !images.isBlank()) {
+            user.setImages(images.trim());
+        }
+        userDAO.update(user);
+        return true;
+    }
+
+    @Override
+    public boolean requestChangeEmail(int userId, String newEmail) {
+        if (newEmail == null || newEmail.isBlank()) {
+            return false;
+        }
+        newEmail = newEmail.trim();
+
+        // Kiểm tra xem email mới có bị tài khoản khác sử dụng chưa
+        User existingUser = userDAO.findByEmail(newEmail);
+        if (existingUser != null && existingUser.getId() != userId) {
+            return false;
+        }
+
+        User user = userDAO.findById(userId);
+        if (user == null) {
+            return false;
+        }
+
+        // Sinh mã OTP 6 số
+        String otp = OtpUtil.generateOtp();
+        Date expiry = OtpUtil.generateExpiryTime(OtpUtil.OTP_EXPIRY_MINUTES);
+
+        user.setPendingEmail(newEmail);
+        user.setCode(otp);
+        user.setOtpExpiry(expiry);
+        userDAO.update(user);
+
+        // Gửi OTP tới địa chỉ email mới
+        return EmailUtil.sendOtpEmail(newEmail, otp, "Xác nhận thay đổi địa chỉ Email");
+    }
+
+    @Override
+    public boolean verifyChangeEmailOtp(int userId, String otp) {
+        if (otp == null || otp.isBlank()) {
+            return false;
+        }
+        User user = userDAO.findById(userId);
+        if (user == null || user.getPendingEmail() == null) {
+            return false;
+        }
+
+        if (otp.trim().equals(user.getCode())) {
+            if (!OtpUtil.isExpired(user.getOtpExpiry())) {
+                user.setEmail(user.getPendingEmail());
+                user.setPendingEmail(null);
+                user.setCode(null);
+                user.setOtpExpiry(null);
+                userDAO.update(user);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void update(User user) {
         if (user != null) {
             userDAO.update(user);

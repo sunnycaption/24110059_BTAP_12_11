@@ -24,6 +24,9 @@ CREATE TABLE [Users] (
     [password] VARCHAR(255) NOT NULL,
     [fullname] NVARCHAR(255) NOT NULL,
     [email] VARCHAR(255) NOT NULL UNIQUE,
+    [phone] VARCHAR(20) NULL,        -- Số điện thoại
+    [images] NVARCHAR(500) NULL,     -- URL ảnh đại diện (Cloudinary)
+    [pendingEmail] VARCHAR(255) NULL,-- Email mới đang chờ xác thực OTP
     [status] BIT NOT NULL DEFAULT 0, -- 0: Chưa kích hoạt, 1: Đã kích hoạt OTP
     [code] VARCHAR(10) NULL,         -- Mã OTP 6 số
     [otpExpiry] DATETIME NULL,       -- Thời hạn hết hạn OTP
@@ -49,11 +52,11 @@ GO
 
 -- 3. Chèn dữ liệu mẫu Users
 -- Mật khẩu mã hóa BCrypt cho "123456" là: $2a$12$K1dYh8K6lWfR9v.8vUa1CeW0V2zM7XwQd1Q3n2L7K9E8P4j3X5fOy
-INSERT INTO [Users] ([username], [password], [fullname], [email], [status], [code], [otpExpiry], [createdAt])
+INSERT INTO [Users] ([username], [password], [fullname], [email], [phone], [images], [pendingEmail], [status], [code], [otpExpiry], [createdAt])
 VALUES 
-('admin', '$2a$12$K1dYh8K6lWfR9v.8vUa1CeW0V2zM7XwQd1Q3n2L7K9E8P4j3X5fOy', N'Quản Trị Viên (Admin)', 'admin@iotstar.vn', 1, NULL, NULL, GETDATE()),
-('user01', '$2a$12$K1dYh8K6lWfR9v.8vUa1CeW0V2zM7XwQd1Q3n2L7K9E8P4j3X5fOy', N'Nguyễn Văn A', 'user01@iotstar.vn', 1, NULL, NULL, GETDATE()),
-('user02', '$2a$12$K1dYh8K6lWfR9v.8vUa1CeW0V2zM7XwQd1Q3n2L7K9E8P4j3X5fOy', N'Trần Thị B', 'user02@iotstar.vn', 0, '123456', DATEADD(MINUTE, 30, GETDATE()), GETDATE());
+('admin', '$2a$12$K1dYh8K6lWfR9v.8vUa1CeW0V2zM7XwQd1Q3n2L7K9E8P4j3X5fOy', N'Quản Trị Viên (Admin)', 'admin@iotstar.vn', '0901234567', 'https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg', NULL, 1, NULL, NULL, GETDATE()),
+('user01', '$2a$12$K1dYh8K6lWfR9v.8vUa1CeW0V2zM7XwQd1Q3n2L7K9E8P4j3X5fOy', N'Nguyễn Văn A', 'user01@iotstar.vn', '0912345678', NULL, NULL, 1, NULL, NULL, GETDATE()),
+('user02', '$2a$12$K1dYh8K6lWfR9v.8vUa1CeW0V2zM7XwQd1Q3n2L7K9E8P4j3X5fOy', N'Trần Thị B', 'user02@iotstar.vn', '0987654321', NULL, NULL, 0, '123456', DATEADD(MINUTE, 30, GETDATE()), GETDATE());
 GO
 
 -- 4. Chèn dữ liệu mẫu Videos (hỗ trợ kiểm thử phân trang chuẩn 6 sản phẩm/trang và Top 10 mới nhất)

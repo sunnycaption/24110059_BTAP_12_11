@@ -7,6 +7,7 @@ target/
 .vscode/
 .idea/
 
-# Bảo mật thông tin nhạy cảm SMTP Email (chứa mật khẩu app thật của cá nhân)
+# Bảo mật thông tin nhạy cảm SMTP Email và Cloudinary
 email.properties
+cloudinary.properties
 

@@ -47,6 +47,15 @@ public class User implements Serializable {
     @Column(name = "otpExpiry")
     private Date otpExpiry; // Thời gian hết hạn OTP
 
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    @Column(name = "images", length = 500)
+    private String images; // URL ảnh đại diện từ Cloudinary
+
+    @Column(name = "pendingEmail", length = 255)
+    private String pendingEmail; // Email mới đang chờ xác thực OTP đổi email
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "createdAt", insertable = false, updatable = false)
     private Date createdAt;
@@ -164,6 +173,30 @@ public class User implements Serializable {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getImages() {
+        return images;
+    }
+
+    public void setImages(String images) {
+        this.images = images;
+    }
+
+    public String getPendingEmail() {
+        return pendingEmail;
+    }
+
+    public void setPendingEmail(String pendingEmail) {
+        this.pendingEmail = pendingEmail;
     }
 
     public List<Video> getVideos() {

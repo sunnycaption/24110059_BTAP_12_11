@@ -1,0 +1,7 @@
+# ========================================================
+# CẤU HÌNH CLOUDINARY UPLOAD ẢNH ĐẠI DIỆN (BẢN MẪU)
+# Copy file này thành cloudinary.properties và điền thông tin của bạn
+# ========================================================
+cloudinary.cloud_name=your_cloud_name
+cloudinary.api_key=your_api_key
+cloudinary.api_secret=your_api_secret

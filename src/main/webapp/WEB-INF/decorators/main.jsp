@@ -53,8 +53,11 @@
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
                                role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <c:choose>
+                                    <c:when test="${not empty sessionScope.currentUser.images && (sessionScope.currentUser.images.startsWith('http://') || sessionScope.currentUser.images.startsWith('https://'))}">
+                                        <img src="${sessionScope.currentUser.images}" alt="Avatar" class="avatar-img me-1" onerror="this.src='https://placehold.co/32x32/667eea/fff?text=U';">
+                                    </c:when>
                                     <c:when test="${not empty sessionScope.currentUser.images}">
-                                        <img src="${sessionScope.currentUser.images}" alt="Avatar" class="avatar-img me-1">
+                                        <img src="${pageContext.request.contextPath}/${sessionScope.currentUser.images.startsWith('uploads/') ? sessionScope.currentUser.images : 'uploads/'.concat(sessionScope.currentUser.images)}" alt="Avatar" class="avatar-img me-1" onerror="this.src='https://placehold.co/32x32/667eea/fff?text=U';">
                                     </c:when>
                                     <c:otherwise>
                                         <i class="bi bi-person-circle me-1"></i>

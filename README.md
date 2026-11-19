@@ -11,6 +11,9 @@
 - **Ngôn ngữ & Nền tảng:** Java 21, Jakarta EE 10 / Servlet 6.0, JSP 3.1, JSTL 3.0.
 - **ORM / Persistence:** Hibernate 7.4.6.Final (JPA 3.0) kết nối Microsoft SQL Server.
 - **Bảo mật:** Mã hóa mật khẩu an toàn với thư viện **jBCrypt**.
+- **Giao diện & Layout Decorator:** **SiteMesh 3.2.1** (Jakarta compatible) kết hợp **Bootstrap 5 (CDN)** & Bootstrap Icons.
+- **Form Validation:** Kiểm tra kép (Client-side với Bootstrap validation `needs-validation` + Server-side trong Servlet).
+- **Lưu trữ đám mây:** **Cloudinary SDK** (`cloudinary-http44:1.39.0`) upload ảnh đại diện (Avatar).
 - **Gửi Email:** Jakarta Mail API (`jakarta.mail-api:2.1.3`) & Angus Mail (`angus-mail:2.0.3`) qua SMTP Gmail.
 - **Upload File:** Chuẩn **Jakarta Servlet Multipart** (`@MultipartConfig`).
 - **Quản lý dependencies:** Apache Maven.
@@ -112,12 +115,66 @@ mail.from.name=Hệ thống Xác thực Java Web - 24110059
 
 ---
 
-## 6. Hướng Dẫn Khởi Chạy Kiểm Thử Nhanh
+## 6. Hướng Dẫn Cấu Hình Cloudinary (`cloudinary.properties`)
 
-1. Mở file [database.sql](database.sql) trong SSMS và chạy **Execute**.
+File cấu hình đặt tại: `src/main/resources/cloudinary.properties` (Bản mẫu tại: `src/main/resources/cloudinary.properties.example`).
+
+```properties
+# ========================================================
+# CẤU HÌNH CLOUDINARY UPLOAD ẢNH ĐẠI DIỆN (USER AVATAR)
+# Lấy thông tin tài khoản tại: https://cloudinary.com/console
+# ========================================================
+cloudinary.cloud_name=your_cloud_name
+cloudinary.api_key=your_api_key
+cloudinary.api_secret=your_api_secret
+```
+
+> **Cách lấy thông tin cấu hình Cloudinary:**
+> 1. Đăng ký/Đăng nhập tài khoản miễn phí tại [https://cloudinary.com](https://cloudinary.com).
+> 2. Vào mục **Dashboard / API Keys**, bạn sẽ thấy các thông số:
+>    - **Cloud Name**: ví dụ `dxyzk123`
+>    - **API Key**: ví dụ `123456789012345`
+>    - **API Secret**: ví dụ `AbCdEfGhIjKlMnOpQrStUvWxYz`
+> 3. Điền 3 giá trị trên vào file `src/main/resources/cloudinary.properties`.
+>
+> 💡 **Cơ chế Fallback thông minh khi Test local**:
+> Nếu người dùng/giảng viên chưa cấu hình API Key thực tế (đang để placeholder `your_cloud_name`), hệ thống `CloudinaryUtil` sẽ **tự động kích hoạt cơ chế Fallback**, lưu ảnh vào thư mục `uploads/` trên server local. Do đó chức năng đổi Avatar vẫn chạy trơn tru 100% mà không bị lỗi crash hệ thống.
+
+---
+
+## 7. Các Chức Năng Bổ Sung Mới
+
+### GIAI ĐOẠN 1: SiteMesh Decorator 3 & Form Validation
+1. **SiteMesh 3 & Template Bootstrap 5**:
+   - Cấu hình qua `ConfigurableSiteMeshFilter` trong `web.xml` và `sitemesh3.xml`.
+   - Layout chính `WEB-INF/decorators/main.jsp` hiển thị Navbar Bootstrap 5 (Trang chủ, Video của tôi, Hồ sơ cá nhân, Đăng xuất), vùng nội dung và Footer.
+   - Layout xác thực `WEB-INF/decorators/auth.jsp` căn giữa đẹp mắt cho `/login`, `/register`, `/forgot-password`, `/verify-otp`, `/reset-password`, `/verify-email-otp`.
+2. **Kiểm Tra Kép Form Validation (Client-side & Server-side)**:
+   - **Client-side**: Sử dụng class `needs-validation` của Bootstrap 5, các thẻ `required`, `pattern`, `minlength`, hiển thị thông báo lỗi `invalid-feedback` tức thì dưới từng ô nhập liệu.
+   - **Server-side**: Toàn bộ Servlet (`LoginServlet`, `RegisterServlet`, `ForgotPasswordServlet`, `ResetPasswordServlet`, `VerifyOtpServlet`, `VideoServlet`, `ProfileServlet`) đều kiểm tra `isBlank()`, Regex Email, Regex Số điện thoại VN (`0[0-9]{9}`), độ dài mật khẩu $\ge 6$, khớp mật khẩu xác nhận, tiêu đề video không rỗng và định dạng file upload hợp lệ.
+
+### GIAI ĐOẠN 2: User Profile, Upload Cloudinary & Đổi Email OTP
+1. **Trang Hồ Sơ Cá Nhân (`/profile`)**:
+   - Hiển thị Avatar (từ Cloudinary hoặc local), `username` (readonly), `fullname`, `phone`, `email`.
+   - Cập nhật `fullname` và `phone` (hỗ trợ kiểm tra định dạng SĐT Việt Nam).
+2. **Upload Avatar lên Cloudinary bằng Multipart**:
+   - Sử dụng thẻ `<input type="file" name="imageFile" accept="image/*">`.
+   - Servlet xử lý qua `request.getPart("imageFile")` và gọi `CloudinaryUtil.uploadPart()`.
+   - Lưu URL `secure_url` từ Cloudinary vào trường `images` của `User`. Nếu không chọn ảnh mới, giữ nguyên ảnh cũ.
+3. **Đổi Địa Chỉ Email Kèm Xác Thực OTP**:
+   - Người dùng nhập email mới tại form đổi email $\rightarrow$ Hệ thống kiểm tra định dạng và kiểm tra trùng lặp với tài khoản khác.
+   - Lưu tạm email mới vào trường `pendingEmail` (không ghi đè `email` chính thức), sinh mã OTP 6 số và gửi mã OTP đến **địa chỉ email mới** qua Gmail SMTP.
+   - Chuyển hướng sang trang `/verify-email-otp` (hoặc form tại `/profile`) để nhập mã OTP 6 chữ số.
+   - Nhập đúng OTP $\rightarrow$ Hệ thống chính thức cập nhật `email = pendingEmail`, xóa `pendingEmail` và `code`, cập nhật `HttpSession`.
+
+---
+
+## 8. Hướng Dẫn Khởi Chạy Kiểm Thử Nhanh
+
+1. Mở file [database.sql](database.sql) trong SSMS và chạy **Execute** để cập nhật cấu trúc bảng `Users` (bổ sung `phone`, `images`, `pendingEmail`) và dữ liệu mẫu.
 2. Nhấp đúp vào file [deploy_and_start.bat](deploy_and_start.bat) trong thư mục dự án để tự động đóng gói WAR và khởi chạy Tomcat 10.1.44.
 3. Trình duyệt sẽ tự động mở trang web tại địa chỉ: `http://localhost:8080/UserAuthProject/login`
-   - Đăng nhập thử với tài khoản mẫu: `admin` / `123456` hoặc `user01` / `123456`.
-   - Đăng ký tài khoản mới: Nhập thông tin $\rightarrow$ Lấy mã OTP (trong Gmail hoặc trên cửa sổ console Tomcat) $\rightarrow$ Kích hoạt thành công.
-   - Thử nghiệm tính năng Quản lý Video: Vào mục "Quản lý Video" (`/video`) $\rightarrow$ Thêm mới video kèm upload poster và video `.mp4`.
-   - Xem Top 10 video trang chủ tại `/home` và click vào tiêu đề để phát video với HTML5 Player.
+   - Đăng nhập với tài khoản mẫu: `admin` / `123456` hoặc `user01` / `123456`.
+   - Bấm vào tên người dùng ở góc trên bên phải $\rightarrow$ Chọn **"Hồ Sơ Cá Nhân"** (`/profile`).
+   - Thử nghiệm cập nhật Họ tên, SĐT và chọn file ảnh để upload lên Cloudinary.
+   - Thử nghiệm chức năng "Thay Đổi Địa Chỉ Email": Nhập email mới $\rightarrow$ Bấm Gửi OTP $\rightarrow$ Nhập mã OTP (xem trong hộp thư email mới hoặc console server) để hoàn tất.

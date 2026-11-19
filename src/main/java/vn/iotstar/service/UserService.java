@@ -40,6 +40,18 @@ public interface UserService {
     // Tìm kiếm User theo username hoặc email
     User findByUsernameOrEmail(String identifier);
 
+    // Tìm kiếm User theo ID
+    User findById(int id);
+
+    // Cập nhật thông tin hồ sơ cá nhân (Profile)
+    boolean updateProfile(int userId, String fullname, String phone, String images);
+
+    // Yêu cầu đổi email: gửi mã OTP tới địa chỉ email mới và lưu vào pendingEmail
+    boolean requestChangeEmail(int userId, String newEmail);
+
+    // Xác thực OTP đổi email mới: nếu khớp thì cập nhật email = pendingEmail
+    boolean verifyChangeEmailOtp(int userId, String otp);
+
     // Cập nhật thông tin User
     void update(User user);
 }
